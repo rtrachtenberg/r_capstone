@@ -1,6 +1,10 @@
 # Note to self: remove rows from rmse_summary with this code:
 # rmse_summary <- rmse_summary %>% filter(!row_number() %in% c(5:7))
 
+# If I need longer data for any reason:
+#l onger_data <- abalone %>% select(-Sex) %>% 
+  # pivot_longer(LongestShell:ShellWeight, names_to = "variable", values_to = "response")
+
 install.packages("AppliedPredictiveModeling")
 # load the library
 library(AppliedPredictiveModeling)
@@ -12,9 +16,7 @@ library(randomForest)
 library(corrplot)
 library(glmnet)
 library(rmarkdown)
-
-# list and review the contents of the library
-library(help = "AppliedPredictiveModeling")
+library(RColorBrewer)
 
 # Abalone Data
 data(abalone)
@@ -47,54 +49,82 @@ sum(abalone$VisceraWeight >= abalone$WholeWeight)
 abalone_clean <- abalone %>% filter(ShuckedWeight <= WholeWeight) %>% filter(Height != 0)
 
 # EDA
+# Use color-blind friendly color palette. Looks like palettes, "Paired", "Set2", and "Dark2"
+# all fall into this category
+display.brewer.all(colorblindFriendly = TRUE)
+display.brewer.pal(n = 8, name = 'Paired')
+brewer.pal(n = 8, name = "Paired")
 
 # Univariate EDA
 
-# plot distribution of abalone weights
-ggplot(abalone, aes(x = WholeWeight)) + 
-  geom_histogram() + xlab("Weight")
+# define shortcut for applying general formatting to plots
+gen_formatting <- theme(plot.title = element_text(face = "bold"),
+                        axis.title.y = element_text(margin = unit(c(0, 20, 0, 0), "pt"))
+)
 
-# plot distribution of abalone weights by Sex
-ggplot(abalone, aes(x = WholeWeight)) + 
-  geom_histogram() + facet_grid(. ~ Sex) +
-  xlab("Weight")
+# Visualize distribution of abalone weights in the full dataset
+plot1 <- ggplot(abalone_clean, aes(x = WholeWeight)) + 
+  geom_histogram(fill = "#FDBF6F", color = "#FF7F00", alpha = 0.7) +
+  labs(title = "Distribution of Abalone Weight",
+       x = "Weight (grams)",
+       y = "Count") +
+  gen_formatting
+plot1
 
-# visualize average weight in each age group (NEED TO FINISH, use ggplot and visualize sample size in each group)
-# seems like male/female plots have normal distribution, making average a better gauge of middle tendency here
-abalone %>% filter(Sex %in% c("M", "F")) %>% group_by(Age) %>% 
+# Visualize distribution of abalone weights by Sex
+plot2 <- ggplot(abalone_clean, aes(x = Sex, y = WholeWeight, fill = Sex)) + 
+  geom_boxplot() + 
+  labs(title = "Distribution of Abalone Weight by Sex",
+       x = "Sex",
+       y = "Weight (grams)") +
+  scale_fill_brewer(palette = "Set2", labels = c("Female", "Immature", "Male")) +
+  scale_x_discrete(labels = c("Female", "Immature", "Male")) +
+  gen_formatting
+plot2
+
+# Visualize average abalone weight by age group
+plot3 <- abalone_clean %>% filter(Sex %in% c("M", "F")) %>% group_by(Age) %>% 
   summarise(avg_weight = mean(WholeWeight)) %>% 
-  ggplot(aes(x = Age, y = avg_weight)) + geom_point() + ylab("Average Weight by Age Group")
+  ggplot(aes(x = Age, y = avg_weight)) + 
+  geom_point(size = 3, shape = 23, color = "#FF7F00", fill = "#FDBF6F") +
+  labs(title = "Average Weight per Abalone Age Group",
+       x = "Age Group",
+       y = "Average Weight by Age Group (grams)") +
+  gen_formatting
+plot3
 
-abalone %>% select(-Sex) %>% group_by(Age) %>%  ggplot(aes(Age)) + geom_bar()
+# Visualize age distribution within the abalone dataset
+plot4 <- abalone %>% select(-Sex) %>% group_by(Age) %>%  ggplot(aes(Age)) + 
+  geom_bar(fill = "#66C2A5", color = "#B3B3B3") +
+  labs(title = "Distribution of Abalone Age",
+       x = "Age",
+       y = "Count") +
+  gen_formatting
+plot4
 
-ggplot(abalone, aes(x = Sex, y = WholeWeight, fill = Sex)) + 
-  geom_boxplot()
+# Visualize distribution of abalone age by Sex
+facet_colors_fill <- c("#A6CEE3", "#FB9A99", "#B2DF8A")
+facet_colors_color <- c("#1F78B4", "#E31A1C", "#33A02C")
 
-ggplot(abalone, aes(x = Age)) + 
-  geom_histogram(binwidth = 5) +
-  facet_grid(Sex~.)
-
-# include immature abalones now
-#abalone_avg <- abalone %>%  select(-Sex) %>% group_by(Age) %>% 
-  #summarise(avg_weight = mean(WholeWeight))
-
-#abalone_avg %>% ggplot(aes(x = Age, y = avg_weight)) + geom_bar()
-
-#plot(x = abalone_avg$Age, y = abalone_avg$avg_weight)
+plot5 <- ggplot(abalone_clean, aes(x = Age, fill = as.factor(Sex), color = as.factor(Sex))) +
+  geom_histogram(binwidth = 2, alpha = 0.7) +  # Custom bar color
+  scale_fill_manual(values = setNames(facet_colors_fill, unique(abalone_clean$Sex)),
+                    name = "Sex",
+                    labels = c(F = "Female", I = "Immature", M = "Male")) +
+  scale_color_manual(values = setNames(facet_colors_color, unique(abalone_clean$Sex)),
+                     name = "Sex",
+                     labels = c(F = "Female", I = "Immature", M = "Male")) + 
+  facet_grid(Sex ~ ., labeller = as_labeller(c(F = "Female", I = "Immature", M = "Male"))) +
+  labs(title = "Distribution of Abalone Age by Sex",
+       x = "Age",
+       y = "Count") +
+  gen_formatting
+plot5
 
 # Multivariate EDA
 
 cor_table = abalone %>% select(-Sex, -Age) %>% cor()
 corrplot(cor_table, method = 'number', diag = FALSE) # colorful number
-
-# Visualize distribution of weight as a factor of sex
-ggplot(abalone, aes(x = Sex, y = WholeWeight, fill = Sex)) + 
-  geom_boxplot() 
-
-longer_data <- abalone %>% select(-Sex) %>% 
-  pivot_longer(LongestShell:ShellWeight, names_to = "variable", values_to = "response")
-
-head(longer_data)
 
 # Conduct independent t-test: Are males significantly larger than females?
 # test that homogeneity of variance is achieved (prereq for t test)
@@ -128,7 +158,7 @@ plot_data <- data.frame(Predicted_value = pred,
 
 ggplot(plot_data, aes(x = Predicted_value, y = Observed_value)) + 
   geom_point() + 
-  geom_abline(intercept = 0, slope = 1, color = "green")
+  geom_abline(intercept = 0, slope = 1, color = "#66C2A5")
 
 lm_fit <- train_set %>% lm(Age ~ WholeWeight + Height, data = .)
 pred <- predict(lm_fit, test_set)
