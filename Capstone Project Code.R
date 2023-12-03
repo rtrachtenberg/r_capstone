@@ -82,6 +82,20 @@ plot2 <- ggplot(abalone_clean, aes(x = Sex, y = WholeWeight, fill = Sex)) +
   gen_formatting
 plot2
 
+# Conduct independent t-test: Are females significantly larger than males?
+# test that homogeneity of variance is achieved (prereq for t-test)
+abalone_test <- abalone_clean %>% filter(Sex %in% c("M", "F"))
+res <- var.test(WholeWeight ~ Sex, data = abalone_test)
+res
+# Ratio of variances is around 0.84, showing that variance is similar between male and female groups
+# no significant difference between these two variances, remove "I" and move forward with t-test
+
+t.test(WholeWeight ~ Sex, var.equal = TRUE, data = abalone_test)
+# significant differences in weight by sex
+# The t-value is 3.2305. This represents the number of standard deviations that the sample mean (mean in group F minus mean in group M) is from the null hypothesis mean (0, assuming no difference between the groups). 
+# A higher absolute t-value indicates a larger difference between the groups.
+# In summary, the low p-value (0.00125) and the 95% confidence interval (not including 0) suggest that there is evidence to reject the null hypothesis.
+
 # Visualize average abalone weight by age group
 plot3 <- abalone_clean %>% filter(Sex %in% c("M", "F")) %>% group_by(Age) %>% 
   summarise(avg_weight = mean(WholeWeight)) %>% 
@@ -123,19 +137,13 @@ plot5
 
 # Multivariate EDA
 
-cor_table = abalone %>% select(-Sex, -Age) %>% cor()
-corrplot(cor_table, method = 'number', diag = FALSE) # colorful number
-
-# Conduct independent t-test: Are males significantly larger than females?
-# test that homogeneity of variance is achieved (prereq for t test)
-abalone_test <- abalone_clean %>% filter(Sex %in% c("M", "F"))
-res <- var.test(WholeWeight ~ Sex, data = abalone_test)
-res
-
-# no significant difference between these two variances, remove "I" and move forward with t-test
-
-t.test(WholeWeight ~ Sex, var.equal = TRUE, data = abalone_test)
-# significant differences in weight by sex
+cor_table = abalone_clean %>% select(-Sex) %>% cor()
+corplot1 <- corrplot(cor_table, method = 'number', diag = FALSE) # colorful number
+corplot1
+# Indicates that we will need to be careful re: multicollinearity when running ML algos
+# Features that are highly correlated with the age (e.g., ShellWeight, Diameter) might be good candidates for inclusion in your machine learning model.
+# Viscera Weight and Whole Weight are highly correlated, would include using dimensionality reduction here if it was a larger dataset
+# Shows us that shell characteristics (ShellWeight, Diameter, LongestShell) may be more predictive of age than full body or fleshy features
 
 # Incorporate cross-validation into LR models
 # Use regularization to deal with the small sample sizes of abalones in the higher age groups
@@ -145,57 +153,63 @@ train_index <- createDataPartition(abalone_clean$Age, p = 0.8, list = FALSE)
 train_set <- abalone_clean[train_index, ]
 test_set <- abalone_clean[-train_index, ]
 
-lm_fit <- train_set %>% lm(Age ~ WholeWeight, data = .)
+# Let's run a simple model (to use for comparison) with just Shell Weight as a predictor
+
+lm_fit <- train_set %>% lm(Age ~ ShellWeight, data = .)
 pred <- predict(lm_fit, test_set)
 head(pred)
 rmse_1 <- RMSE(test_set$Age, pred)
 
-rmse_summary <- tibble(Model = "Linear Reg - Weight", RMSE = rmse_1)
+rmse_summary <- tibble(Model = "Linear Reg - Shell Weight", RMSE = rmse_1)
 rmse_summary
 
+# Visualize predicted vs actual values
 plot_data <- data.frame(Predicted_value = pred,   
                         Observed_value = test_set$Age) 
 
-ggplot(plot_data, aes(x = Predicted_value, y = Observed_value)) + 
+ggplot(plot_data, aes(x = Observed_value, y = Predicted_value)) + 
   geom_point() + 
-  geom_abline(intercept = 0, slope = 1, color = "#66C2A5")
+  geom_abline(intercept = 0, slope = 1, color = "#66C2A5", linetype = "dashed") +
+  labs(title = "Predicted vs Actual",
+       x = "Actual Values",
+       y = "Predicted Values")
 
-lm_fit <- train_set %>% lm(Age ~ WholeWeight + Height, data = .)
+# Let's see what happens when we add in Height
+# Chose height because it still has a relatively high correlation with age (0.56)
+# but is less closely correlated than Diameter with Age (0.82 for Height vs 0.91 for Diameter)
+# Multicollinearity still high, but not as high as it would be with Diameter
+
+lm_fit <- train_set %>% lm(Age ~ ShellWeight + Height, data = .)
 pred <- predict(lm_fit, test_set)
 rmse_2 <- RMSE(test_set$Age, pred)
 
 rmse_summary <- bind_rows(rmse_summary,
-                          tibble(Model = "Linear Reg - Weight + Height",
+                          tibble(Model = "Linear Reg - Shell Weight + Height",
                                  RMSE = rmse_2))
 rmse_summary
 
-lm_fit <- train_set %>% lm(Age ~ WholeWeight + Height + Diameter, data = .)
+# Worse predictive power
+
+# Let's try using all of the other predictors in the linear regression model
+
+lm_fit <- train_set %>% lm(Age ~ ., data = .)
 pred <- predict(lm_fit, test_set)
 rmse_3 <- RMSE(test_set$Age, pred)
 
 rmse_summary <- bind_rows(rmse_summary,
-                          tibble(Model = "Linear Reg - Weight + Height + Diameter",
+                          tibble(Model = "Linear Reg - All Predictor Variables",
                                  RMSE = rmse_3))
 rmse_summary
 
-lm_fit <- train_set %>% lm(Age ~ WholeWeight + Height + Diameter + LongestShell, data = .)
-pred <- predict(lm_fit, test_set)
-rmse_4 <- RMSE(test_set$Age, pred)
+# That's much better! Can we improve even further with regularization?
 
-rmse_summary <- bind_rows(rmse_summary,
-                          tibble(Model = "Linear Reg - Weight + Height + Diameter + Longest Shell",
-                                 RMSE = rmse_4))
-rmse_summary
 
-lm_fit <- train_set %>% lm(Age ~ ., data = .)
-pred <- predict(lm_fit, test_set)
-rmse_5 <- RMSE(test_set$Age, pred)
 
-rmse_summary <- bind_rows(rmse_summary,
-                          tibble(Model = "Linear Reg - All Variables",
-                                 RMSE = rmse_5))
-rmse_summary
 
+
+# Since regularization methods are sensitive to the scale of the input features, 
+# let's (a) ensure our features are on a similar scale and (b) if not, use a feature
+# scaling technique such as standardization
 
 # Perform elastic net regression regularization technique, determining lambda using cross-validation 
 # Lasso (L1) regression works best when your model contains lot of useless variables, shrinks some parameters to 0 to create a simpler model
@@ -217,10 +231,11 @@ alpha0.fit <- cv.glmnet(x= as.matrix(train_set_numeric[,predictor_names]), y= tr
           type.measure = "mse", alpha = 0, nlambda = 100)
 
 alpha0.predicted <- predict(alpha0.fit, s = alpha0.fit$lambda.min, newx = as.matrix(test_set_numeric[,predictor_names]))
-rmse_6 <- RMSE(test_set_numeric$Age, alpha0.predicted)
+rmse_4 <- RMSE(test_set_numeric$Age, alpha0.predicted)
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Linear Reg w Ridge (L2) Regression",
-                                 RMSE = rmse_6))
+                                 RMSE = rmse_4))
+rmse_summary
 
 # Perform Lasso Regression and see if it reduces RMSE
 
@@ -228,10 +243,10 @@ alpha1.fit <- cv.glmnet(x= as.matrix(train_set_numeric[,predictor_names]), y= tr
                         type.measure = "mse", alpha = 1, nlambda = 100)
 
 alpha1.predicted <- predict(alpha1.fit, s = alpha1.fit$lambda.min, newx = as.matrix(test_set_numeric[ , predictor_names]))
-rmse_7 <- RMSE(test_set_numeric$Age, alpha1.predicted)
+rmse_5 <- RMSE(test_set_numeric$Age, alpha1.predicted)
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Linear Reg w Lasso (L1) Regression",
-                                 RMSE = rmse_7))
+                                 RMSE = rmse_5))
 rmse_summary
 
 # Perform Elastic Net Regression
@@ -239,16 +254,16 @@ alpha0.5.fit <- cv.glmnet(x= as.matrix(train_set_numeric[ , predictor_names]), y
                         type.measure = "mse", alpha = 0.5, nlambda = 100)
 
 alpha0.5.predicted <- predict(alpha0.5.fit, s = alpha0.5.fit$lambda.min, newx = as.matrix(test_set_numeric[ , predictor_names]))
-rmse_8 <- RMSE(test_set_numeric$Age, alpha0.5.predicted)
+rmse_6 <- RMSE(test_set_numeric$Age, alpha0.5.predicted)
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Elastic Net Regression",
-                                 RMSE = rmse_8))
+                                 RMSE = rmse_6))
 rmse_summary
 
 # TO DO: use weights based on correlation, see if it improves rmse
 # see ?variable.names example for use of weights in linear regression
 
-# TO DO: Lasso (L1) Regression seems to yield the best result, but to understand whether this really wins, 
+# Lasso (L1) Regression seems to yield the best result, but to understand whether this really wins, 
 # we need to try many different values for alpha in elastic net.
 
 fit_values <- list()
@@ -280,16 +295,16 @@ results
 
 results <- results %>% rename(rmse = mse, alphas = alpha)
 
-
 # visualize results without the outlier (alpha0)
 plot_results <-  ggplot(results, aes(x = alphas, y = rmse, color = fit_name)) +
     geom_point(position = position_jitter(width = 0.2), size = 3) +
     labs(title = "RMSE vs. Alphas",
          x = "Alphas",
          y = "Root Mean Squared Error") +
-    coord_cartesian(ylim = c(2.375, 2.400)) +
-    scale_y_continuous(breaks = seq(2.375, 2.400, by = 0.025)) +
-    theme_minimal()
+    coord_cartesian(ylim = c(2.315, 2.325)) +
+    scale_y_continuous(breaks = seq(2.315, 2.325, by = 0.005)) +
+  scale_y_continuous(trans='log10') +
+  gen_formatting
 plot_results
 
 # since it's difficult to tell which alpha is the lowest just from the graph, print result below:
@@ -322,41 +337,80 @@ cv_errors
 # TO DO: transform predictions into factors with same levels as abalone set so that confusion matrix can be run
 rf_model <- randomForest(Age ~ ., data = train_set_numeric, ntree = 500)
 predictions <- predict(rf_model, test_set_numeric)
-rmse_9 <- RMSE(predictions, test_set_numeric$Age)
+rmse_7 <- RMSE(predictions, test_set_numeric$Age)
+rmse_7
 
 rmse_summary <- bind_rows(rmse_summary,
-                          tibble(Model = "Random Forest",
-                                 RMSE = rmse_9))
+                          tibble(Model = "Random Forest - Default Params",
+                                 RMSE = rmse_7))
 rmse_summary
 
 # fine tune the model:
 
-# Specify the training control settings for cross-validation
-ctrl <- trainControl(method = "cv", number = 5)
+# Specify the training control settings for cross-validation (with a 10-fold cross validation)
+ctrl <- trainControl(method = "cv", number = 10)
 
-# Define the parameter grid
+# We could use the tuneGrid argument of the train() function in the caret package to do this,
+# but let's try adjusting parameters using the randomForest() function instead 
+
 param_grid <- expand.grid(
-  mtry = c(2, 4, 6)  # Adjust the number of features to consider at each split
-  # nodesize = c(1, 5, 10),  # Minimum size of terminal nodes
-  # ntree = c(100, 200, 300)  # Number of trees
+  mtry = c(2, 4, 6),
+  nodesize = c(1,3,5),
+  ntree = c(100, 300, 500)
 )
 
-# Create the Random Forest model with grid search
-rf_model <- train(
-  x = train_set_numeric[, colnames(train_set_numeric) != "Age"],
-  y = train_set_numeric$Age,
-  method = "rf",
-  trControl = ctrl,
-  tuneLength = 8, # Number of combinations in the grid
-  tuneGrid = param_grid,
-  ntree = 1000,
-  nodesize = 5
-)
+# Create an empty list to store the models
+models <- list()
 
-# Display the best tuning parameters
-print(rf_model)
+# Iterate over each combination of parameters
+for (i in 1:nrow(param_grid)) {
+  params <- param_grid[i, ]
+  
+  # Train the model with the current set of parameters
+  model <- randomForest(
+    x = train_set_numeric[, colnames(train_set_numeric) != "Age"],
+    y = train_set_numeric$Age,
+    mtry = params$mtry,
+    nodesize = params$nodesize,
+    ntree = params$ntree
+  )
+  
+  # Store the trained model
+  models[[paste(params$mtry, params$nodesize, params$ntree, sep = "_")]] <- model
+}
 
-# Access the best model with optimal parameters
-predictions <- predict(rf_model, test_set)
-rmse_10 <- RMSE(predictions, test_set_numeric$Age)
-rmse_10
+names(models)
+
+# Create an empty vector to store the RMSE values
+rmse_values <- numeric(length(models))
+
+# Evaluate each model on the test set
+for (i in seq_along(models)) {
+  model <- models[[i]]
+  
+  # Make predictions on the test set
+  predictions <- predict(model, newdata = test_set_numeric[, colnames(test_set_numeric) != "Age"])
+  
+  # Calculate RMSE
+  rmse_values[i] <- RMSE(predictions, test_set_numeric$Age)
+}
+
+# Find the index of the model with the lowest RMSE
+best_model_index <- which.min(rmse_values)
+
+# Access the best model
+best_model <- models[[best_model_index]]
+names(models[best_model_index])
+# looks like the best parameters are mtry = 2, nodesize = 5, and ntree = 500
+
+# Print the RMSE values
+rmse_8 <- rmse_values[best_model_index]
+
+rmse_summary <- bind_rows(rmse_summary,
+                          tibble(Model = "Random Forest - Tuned Params",
+                                 RMSE = rmse_8))
+rmse_summary
+
+# We could try more values for fine tuning, but it would take a lot of run time
+# and it doesn't seem like tuning is making a significant difference in RMSE, anyway
+
