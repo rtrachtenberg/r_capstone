@@ -452,7 +452,7 @@ cat("Test Set RMSE:", rmse, "\n")
 # may not be effective since we've already done some feature engineering by adding interaction terms.
 # Since the RMSE is higher, we will avoid adding the RMSE to the table to avoid cluttering it up.
 
-# try random forest model instead
+# Let's try a random forest model instead:
 rf_model <- randomForest(Age ~ ., data = train_set_intxns, ntree = 500)
 predictions <- predict(rf_model, test_set_intxns)
 rmse_8 <- RMSE(predictions, test_set_intxns$Age)
@@ -463,7 +463,29 @@ rmse_summary <- bind_rows(rmse_summary,
                                  RMSE = rmse_8))
 rmse_summary
 
-# fine tune the model:
+# This result is pretty good, but doesn't beat our LR with interaction terms RMSE. 
+# Let's try running the same random forest model, but with incorporation of class weights
+# (by assigning a higher weight to older age groups with a lower sample size) to address
+# the issue of unbalanced data:
+
+# Assign class weights (higher weight for age groups 15 years and older)
+class_weights <- ifelse(train_set_intxns$Age >= 15, 2, 1)
+
+# Run the model with class weights
+rf_model_weights <- randomForest(
+  formula = Age ~ .,
+  data = train_set_intxns,
+  ntree = 500,
+  classwt = class_weights
+  )
+
+predictions <- predict(rf_model_weights, test_set_intxns)
+rmse_rf_wt <- RMSE(predictions, test_set_intxns$Age)
+rmse_rf_wt
+
+# It looks like this didn't help improve our RMSE much. Let's try fine-tuning instead.
+
+# Tune the random forest model:
 
 # Specify the training control settings for cross-validation (with a 10-fold cross validation)
 ctrl <- trainControl(method = "cv", number = 10)

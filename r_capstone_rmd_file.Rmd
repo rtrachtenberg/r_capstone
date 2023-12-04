@@ -1,0 +1,50 @@
+---
+title: 'Capstone Project: Abalone Age Prediction'
+author: "Roxie Trachtenberg"
+date: "2023-12-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Abalone Age Prediction
+
+## Introduction
+
+The abalone dataset, downloaded from the AppliedPredictiveModeling R package (which can be accessed at this [link](https://github.com/cran/AppliedPredictiveModeling/tree/master/data)), contains 4,177 instances of physical and qualitative observations of this type of marine snail. The data originated from a 1995 study conducted by UC Irvine and contains the following data:
+
+| Variable Name | Variable Type | Units       | Description                                                     |
+|-----------------|--------------|-----------|-------------------------------|
+| Sex           | Categorical   | NA          | Split into 3 categories: M (Male), F (Female), and I (Immature) |
+| LongestShell  | Continuous    | millimeters | Abalone length measured from ends of longest shell              |
+| Diameter      | Continuous    | millimeters | Abalone shell diameter (perpendicular to longest shell length)  |
+| Height        | Continuous    | millimeters | Abalone height, including meat within shell                     |
+| WholeWeight   | Continuous    | grams       | Whole abalone weight                                            |
+| ShuckedWeight | Continuous    | grams       | Weight of abalone flesh (not including exoskeleton or shell)    |
+| VisceraWeight | Continuous    | grams       | Gut weight after bleeding                                       |
+| ShellWeight   | Continuous    | grams       | Shell weight only (after being dried)                           |
+| Rings         | Integer       | NA          | Number of abalone rings observed, used to derive age in years   |
+
+According to the researchers that piloted the 1995 study, the age of an abalone is determined by cutting and staining the shell, followed by analysis under microscope, which is a cumbersome task. All information regarding the origin of this data can be found in the UC Irvine Machine Learning Repository archives, [here](http://archive.ics.uci.edu/dataset/1/abalone). The goal of this project is to see if the measurements already a part of this dataset can be used to predict the age instead of using time-consuming and invasive procedures.
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
