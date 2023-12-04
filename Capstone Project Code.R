@@ -1,20 +1,15 @@
-# Note to self: remove rows from rmse_summary with this code:
-# rmse_summary <- rmse_summary %>% filter(!row_number() %in% c(5:7))
-
-# If I need longer data for any reason:
-#longer_data <- abalone %>% select(-Sex) %>% 
-  # pivot_longer(LongestShell:ShellWeight, names_to = "variable", values_to = "response")
+# Abalone Age Prediction Project
 
 # Install packages and open libraries
 package_names <- c("AppliedPredictiveModeling", 
                    "ggplot2", "dplyr", "tidyverse", "caret",
                    "randomForest", "corrplot", "glmnet", "rmarkdown",
-                   "RColorBrewer", "xgboost")
+                   "RColorBrewer", "xgboost", "DAAG", "Metrics")
 # Load libraries
 libraries_to_load <- c("AppliedPredictiveModeling", 
                        "ggplot2", "dplyr", "tidyverse", "caret",
                        "randomForest", "corrplot", "glmnet", "rmarkdown",
-                       "RColorBrewer", "xgboost")
+                       "RColorBrewer", "xgboost", "DAAG", "Metrics")
 for (lib in libraries_to_load) {
   library(lib, character.only = TRUE)
 }
@@ -25,16 +20,15 @@ dim(abalone)
 str(abalone)
 head(abalone)
 
-# Clean Data
-# Add column for abalone age based on # of rings
+## Clean Data
 # remove old Rings column so as not to introduce issues associated with perfect multicollinearity when running models
 # Add age column: The age of an abalone is represented by its number of rings plus 1.5 as number of years lived.
 
 abalone <- abalone %>% mutate(Age = Rings + 1.5) %>% rename(Sex = Type) %>% select(-Rings)
 
-# Clean data - remove obvious errors/outliers
+# Remove obvious errors/outliers by checking 
 
-apply(abalone,2,min)
+apply(abalone, 2, min)
 # looks like height has some values of 0 that should be removed
 
 # Check for erroneous values: where shucked weight is greater than whole weight and viscera weight is greater than whole weight
@@ -49,16 +43,22 @@ sum(abalone$VisceraWeight >= abalone$WholeWeight)
 
 abalone_clean <- abalone %>% filter(ShuckedWeight <= WholeWeight) %>% filter(Height != 0)
 
-# EDA
-# Use color-blind friendly color palette. Looks like palettes, "Paired", "Set2", and "Dark2"
+## Univariate EDA
+# Now that we have a clean dataset, let's get a feel for the data and how it's distributed throughout
+# and within subsets of the data
+
+# Prior to plotting and graphing,
+# let's look into using a color-blind friendly color palette. Looks like palettes, "Paired", "Set2", and "Dark2"
 # all fall into this category
 display.brewer.all(colorblindFriendly = TRUE)
+
+# We will be using the "Paired" and "Set2" palettes, so let's note their hexadecimal color names for future use
 display.brewer.pal(n = 8, name = 'Paired')
 brewer.pal(n = 8, name = "Paired")
+display.brewer.pal(n = 8, name = 'Set2')
+brewer.pal(n = 8, name = "Set2")
 
-# Univariate EDA
-
-# define shortcut for applying general formatting to plots
+# define shortcut for applying general formatting to plots to save processing time later
 gen_formatting <- theme(plot.title = element_text(face = "bold"),
                         axis.title.y = element_text(margin = unit(c(0, 20, 0, 0), "pt"))
 )
@@ -83,13 +83,16 @@ plot2 <- ggplot(abalone_clean, aes(x = Sex, y = WholeWeight, fill = Sex)) +
   gen_formatting
 plot2
 
-# Conduct independent t-test: Are females significantly larger than males?
-# test that homogeneity of variance is achieved (prereq for t-test)
+# Based on the plot above, it's difficult to tell whether females are significantly heavier than males.
+
+# Conduct independent t-test: Are females significantly heavier than males?
+# test that homogeneity of variance is achieved (prerequisite for t-test)
 abalone_test <- abalone_clean %>% filter(Sex %in% c("M", "F"))
 res <- var.test(WholeWeight ~ Sex, data = abalone_test)
 res
 # Ratio of variances is around 0.84, showing that variance is similar between male and female groups
-# no significant difference between these two variances, remove "I" and move forward with t-test
+# no significant difference between these two variances, so we can move forward with our t-test
+# Remove "I", or immature abalones, from the dataset and move forward with t-test
 
 t.test(WholeWeight ~ Sex, var.equal = TRUE, data = abalone_test)
 # significant differences in weight by sex
@@ -106,7 +109,14 @@ plot3 <- abalone_clean %>% filter(Sex %in% c("M", "F")) %>% group_by(Age) %>%
        x = "Age Group",
        y = "Average Weight by Age Group (grams)") +
   gen_formatting
+
 plot3
+
+# This plot shows a general increasing trend and direct relationship between age group and average weight.
+# However, there are some funky-looking values in the top right-hand corner of the plot (for age groups of around 18 yrs and above)
+# Average is really only a good central tendency measure when the data in each age group is normally distributed or has low sample size.
+# It is possible that the distribution of weight data in the higher age groups is not normally distributed or has low sample size.
+# Let's investigate the number of observations in each age group:
 
 # Visualize age distribution within the abalone dataset
 plot4 <- abalone %>% select(-Sex) %>% group_by(Age) %>%  ggplot(aes(Age)) + 
@@ -116,6 +126,13 @@ plot4 <- abalone %>% select(-Sex) %>% group_by(Age) %>%  ggplot(aes(Age)) +
        y = "Count") +
   gen_formatting
 plot4
+
+# Interesting, looks like our initial hunch about low sample size was correct and our dataset
+# suffers from survivorship bias, in that there are fewer abalones that live to older age
+# and therefore, less data to use to reliably predict abalones of older age.
+# We will keep this unbalanced dataset issue in mind as we run machine learning models.
+# Is there at least a somewhat even distribution of males and females in each age group, even if sample size is lower
+# in older age groups?
 
 # Visualize distribution of abalone age by Sex
 facet_colors_fill <- c("#A6CEE3", "#FB9A99", "#B2DF8A")
@@ -134,21 +151,24 @@ plot5 <- ggplot(abalone_clean, aes(x = Age, fill = as.factor(Sex), color = as.fa
        x = "Age",
        y = "Count") +
   gen_formatting
+
 plot5
 
-# Multivariate EDA
+# Looks like there is a generally similar distribution of males and females in each age group.
+# Even immature abalones, although obviously much less are present in older age groups, show a similar data distribution
+# to males and females
+
+## Multivariate EDA
+# Now that we've looked into some of the variables and their distributions individually, let's look at how they may 
+# be correlated with one another. Remember that correlation does not imply causation.
 
 cor_table = abalone_clean %>% select(-Sex) %>% cor()
 corplot1 <- corrplot(cor_table, method = 'number', diag = FALSE) # colorful number
 corplot1
 # Indicates that we will need to be careful re: multicollinearity when running ML algos
 # Features that are highly correlated with the age (e.g., ShellWeight, Diameter) might be good candidates for inclusion in your machine learning model.
-# Viscera Weight and Whole Weight are highly correlated, would include using dimensionality reduction here if it was a larger dataset
+# Viscera Weight and Whole Weight are highly correlated, would consider using dimensionality reduction here if it was a larger dataset
 # Shows us that shell characteristics (ShellWeight, Diameter, LongestShell) may be more predictive of age than full body or fleshy features
-
-# Incorporate cross-validation into LR models
-# Use regularization to deal with the small sample sizes of abalones in the higher age groups
-# use multiple models (LR for prediction of age as continuous variable and random forest for prediction of age as categorical/interval variable)
 
 train_index <- createDataPartition(abalone_clean$Age, p = 0.8, list = FALSE)
 train_set <- abalone_clean[train_index, ]
@@ -173,9 +193,10 @@ ggplot(plot_data, aes(x = Observed_value, y = Predicted_value)) +
   geom_abline(intercept = 0, slope = 1, color = "#66C2A5", linetype = "dashed") +
   labs(title = "Predicted vs Actual",
        x = "Actual Values",
-       y = "Predicted Values")
+       y = "Predicted Values") +
+  gen_formatting
 
-# Let's see what happens when we add in Height
+# This is not looking very good. Let's see what happens when we add in Height.
 # Chose height because it still has a relatively high correlation with age (0.56)
 # but is less closely correlated than Diameter with Age (0.82 for Height vs 0.91 for Diameter)
 # Multicollinearity still high, but not as high as it would be with Diameter
@@ -189,9 +210,9 @@ rmse_summary <- bind_rows(rmse_summary,
                                  RMSE = rmse_2))
 rmse_summary
 
-# Worse predictive power
+# This is slightly better, but does not produce a notable change in RMSE.
 
-# Let's try using all of the other predictors in the linear regression model
+# Let's try using all of the other predictors in the linear regression model:
 
 lm_fit <- train_set %>% lm(Age ~ ., data = .)
 pred <- predict(lm_fit, test_set)
@@ -202,49 +223,76 @@ rmse_summary <- bind_rows(rmse_summary,
                                  RMSE = rmse_3))
 rmse_summary
 
-# That's much better! Can we improve even further with regularization?
+# Better, but let's see if we can refine the LR model further by addressing multicollinearity
+# We don't need to do a PCA method for dimensionality reduction because the dataset has minimal features and we
+# are relatively familiar with how each variable is related.
+# Creating interaction terms involves multiplying two or more predictor variables to capture combined effects in a linear regression model.
 
-# First, transform Sex to integer so that all predictor variables are numeric
-train_set_numeric <- train_set %>% mutate(Sex_Integer = as.integer(train_set$Sex))
-test_set_numeric <- test_set %>% mutate(Sex_Integer = as.integer(test_set$Sex))
+train_set_intxns <- train_set %>% mutate(physical_measurements = Height * Diameter * WholeWeight, 
+                                                    internal_features = ShuckedWeight * VisceraWeight,
+                                                    shell_features = ShellWeight * Diameter)
+
+test_set_intxns <- test_set %>% mutate(physical_measurements = Height * Diameter * WholeWeight, 
+                                          internal_features = ShuckedWeight * VisceraWeight,
+                                          shell_features = ShellWeight * Diameter)
+
+lm_fit <- train_set_int_terms %>% lm(Age ~ ., data = .)
+pred <- predict(lm_fit, test_set_intxns)
+rmse_4 <- RMSE(test_set_intxns$Age, pred)
+
+rmse_summary <- bind_rows(rmse_summary,
+                          tibble(Model = "Linear Reg - All Predictor Variables + Interaction Terms",
+                                 RMSE = rmse_4))
+rmse_summary
+
+# That's much better! Can we use this dataset with interaction terms and improve even further by implementing regularization?
+
+# First, transform Sex to a numeric value so that all predictor variables are numeric:
+train_set_continuous <- train_set_intxns %>% mutate(Sex_Integer = as.integer(train_set$Sex)) %>% select(-c(Sex))
+test_set_continuous <- test_set_intxns %>% mutate(Sex_Integer = as.integer(test_set$Sex)) %>% select(-c(Sex))
 
 # Since regularization methods are sensitive to the scale of the input features, 
 # let's (a) ensure our features are on a similar scale and (b) if not, use a feature
 # scaling technique such as standardization
+# Even though the glmnet package standardizes data automatically, we will do this anyway for practice and educational purposes.
+
+# Initialize the scaled data frames
+train_set_scaled <- train_set_continuous
+test_set_scaled <- test_set_continuous
 
 # (a) Ensure features are on a similar scale:
-scale_names <- colnames(train_set_numeric)[!colnames(train_set_numeric) %in% c("Age", "Sex")]
+scale_names_train <- colnames(train_set_continuous)[!colnames(train_set_continuous) %in% c("Age")]
+scale_names_test <- colnames(test_set_continuous)[!colnames(test_set_continuous) %in% c("Age")]
 
 # Check the means and standard deviations of the features
 feature_summary <- data.frame(
-  Feature = scale_names,
-  Mean = colMeans(train_set_numeric[, scale_names]),
-  SD = apply(train_set_numeric[, scale_names], 2, sd)
+  Feature = scale_names_train,
+  Mean = colMeans(train_set_continuous[, scale_names_train]),
+  SD = apply(train_set_continuous[, scale_names_train], 2, sd)
 )
 
 feature_summary
-# Looks like features are not on a similar scale
+# Looks like features are not on a similar scale, so let's fix it
 
 # Implement feature scaling using the scale() function
-train_set_scaled <- train_set_numeric
-train_set_scaled[, scale_names] <- scale(train_set_scaled[, scale_names])
+train_set_scaled[, scale_names_train] <- scale(train_set_continuous[, scale_names_train])
+test_set_scaled[, scale_names_test] <- scale(test_set_continuous[, scale_names_test])
 
 # Check means and SDs after scaling
 # Now, check the means and standard deviations after scaling
 scaled_feature_summary <- data.frame(
-  Feature = scale_names,
-  Mean = colMeans(train_set_scaled[, scale_names]),
-  SD = apply(train_set_scaled[, scale_names], 2, sd)
+  Feature = scale_names_train,
+  Mean = colMeans(train_set_scaled[, scale_names_train]),
+  SD = apply(train_set_scaled[, scale_names_train], 2, sd)
 )
 
 scaled_feature_summary
-
-# Apply same scaling transformation to the test set to ensure consistency
-test_set_scaled <- test_set_numeric
-test_set_scaled[, scale_names] <- scale(test_set_scaled[, scale_names],
-                                            center = colMeans(train_set_numeric[, scale_names]),
-                                            scale = apply(train_set_numeric[, scale_names], 2, sd))
-
+# the scaling process has centered the data (resulting in a mean close to zero) 
+# and standardized its spread (resulting in a standard deviation close to 1) for each feature. 
+# Without scaling, features with larger scales may dominate the penalty term, 
+# leading the model to focus more on those features, potentially ignoring smaller-scale features that may be important to age prediction.
+# Scaling ensures that the regularization strength (the hyperparameter controlling the extent of regularization) applies uniformly across features.
+# It helps ensure that all features contribute more equally to the learning process.
 
 # Perform elastic net regression regularization technique, determining lambda using cross-validation 
 # Lasso (L1) regression works best when your model contains lot of useless variables, shrinks some parameters to 0 to create a simpler model
@@ -252,23 +300,30 @@ test_set_scaled[, scale_names] <- scale(test_set_scaled[, scale_names],
 # Elastic net regression combines the two penalties and is especially good at dealing with situations
 # when there are correlations between parameters
 
-# Perform Ridge Regression and see if it reduces RMSE
+# Perform Ridge Regression and see if it reduces RMSE. Ridge Regression can be a suitable technique for 
+# improving model performance when there is multicollinearity among predictor variables, which we have in our dataset.
+# However, it does not perform variable selection and will only shrink coefficients toward 0, not exactly at 0.
+# Ridge regression may be more suitable for a dataset with a larger number of predictors, but let's see how our model performs.
 
 # Define predictor names so that Age is not included as a predictor during model fitting
 # and so that the "Sex" variable does not coerce the entire matrix variable classes to characters
-
 predictor_names <- colnames(train_set_scaled)[!colnames(train_set_scaled) %in% c("Age", "Sex")]
 
+# Run regularized model and use to output predictions
 alpha0.fit <- cv.glmnet(x= as.matrix(train_set_scaled[,predictor_names]), y= train_set_scaled$Age, family= "gaussian", 
           type.measure = "mse", alpha = 0, nlambda = 100)
 
 alpha0.predicted <- predict(alpha0.fit, s = alpha0.fit$lambda.min, newx = as.matrix(test_set_scaled[,predictor_names]))
-rmse_4 <- RMSE(test_set_scaled$Age, alpha0.predicted)
-rmse_4
+rmse_5 <- RMSE(test_set_scaled$Age, alpha0.predicted)
+rmse_5
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Linear Reg w Ridge (L2) Regression",
-                                 RMSE = rmse_4))
+                                 RMSE = rmse_5))
 rmse_summary
+
+# The RMSE is better than the linear regression models with only 1 or 2 variables as inputs, but it doesn't seem 
+# like ridge regression is helping much using these parameters. 
+# Lasso regression may be better since it performs variable selection by setting some coefficients completely to 0.
 
 # Perform Lasso Regression and see if it reduces RMSE
 
@@ -276,30 +331,32 @@ alpha1.fit <- cv.glmnet(x= as.matrix(train_set_scaled[,predictor_names]), y= tra
                         type.measure = "mse", alpha = 1, nlambda = 100)
 
 alpha1.predicted <- predict(alpha1.fit, s = alpha1.fit$lambda.min, newx = as.matrix(test_set_scaled[ , predictor_names]))
-rmse_5 <- RMSE(test_set_scaled$Age, alpha1.predicted)
-rmse_5
+rmse_6 <- RMSE(test_set_scaled$Age, alpha1.predicted)
+rmse_6
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Linear Reg w Lasso (L1) Regression",
-                                 RMSE = rmse_5))
+                                 RMSE = rmse_6))
 rmse_summary
+
+# This looks like a huge improvement, although it still doesn't quite beat out our LR model with interaction terms
+# Now, let's try elastic net regression to see if a combination of ridge and lasso penalties may offer 
+# a better balance between variable selection and handling multicollinearity.
 
 # Perform Elastic Net Regression
 alpha0.5.fit <- cv.glmnet(x= as.matrix(train_set_scaled[ , predictor_names]), y= train_set_scaled$Age, family= "gaussian", 
                         type.measure = "mse", alpha = 0.5, nlambda = 100)
 
 alpha0.5.predicted <- predict(alpha0.5.fit, s = alpha0.5.fit$lambda.min, newx = as.matrix(test_set_scaled[ , predictor_names]))
-rmse_6 <- RMSE(test_set_scaled$Age, alpha0.5.predicted)
-rmse_6
+rmse_7 <- RMSE(test_set_scaled$Age, alpha0.5.predicted)
+rmse_7
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Elastic Net Regression",
-                                 RMSE = rmse_6))
+                                 RMSE = rmse_7))
 rmse_summary
 
-# TO DO: use weights based on correlation, see if it improves rmse
-# see ?variable.names example for use of weights in linear regression
-
-# Lasso (L1) Regression seems to yield the best result, but to understand whether this really wins, 
-# we need to try many different values for alpha in elastic net.
+# Lasso (L1) Regression or Elastic Net Regression seems to yield the best result, 
+# but to understand which combination of penalties is truly best,
+# we need to try many different values for alpha by optimizing the elastic net regression.
 
 fit_values <- list()
 
@@ -307,7 +364,7 @@ for (i in 0:10) {
   fit_name <- paste0("alpha", i/10)
   
   fit_values[[fit_name]] <-
-    cv.glmnet(x = as.matrix(train_set_numeric[ , predictor_names]), y= train_set_numeric$Age, family= "gaussian", 
+    cv.glmnet(x = as.matrix(train_set_continuous[ , predictor_names]), y= train_set_continuous$Age, family= "gaussian", 
               type.measure = "mse", alpha = i/10, nlambda = 100)
 }
 
@@ -318,9 +375,9 @@ for (i in 0:10) {
   
   predicted <- 
     predict(fit_values[[fit_name]], 
-            s = fit_values[[fit_name]]$lambda.min, newx = as.matrix(test_set_numeric[ , predictor_names]))
+            s = fit_values[[fit_name]]$lambda.min, newx = as.matrix(test_set_continuous[ , predictor_names]))
   
-  rmse <- RMSE(test_set_numeric$Age, predicted)
+  rmse <- RMSE(test_set_continuous$Age, predicted)
   
   temp <- data.frame(alpha = i/10, mse = rmse, fit_name = fit_name)
   results <- rbind(results, temp)
@@ -330,25 +387,16 @@ results
 
 results <- results %>% rename(rmse = mse, alphas = alpha)
 
-# visualize results without the outlier (alpha0)
-plot_results <-  ggplot(results, aes(x = alphas, y = rmse, color = fit_name)) +
-    geom_point(position = position_jitter(width = 0.2), size = 3) +
-    labs(title = "RMSE vs. Alphas",
-         x = "Alphas",
-         y = "Root Mean Squared Error") +
-    coord_cartesian(ylim = c(2.315, 2.325)) +
-    scale_y_continuous(breaks = seq(2.315, 2.325, by = 0.005)) +
-  scale_y_continuous(trans='log10') +
-  gen_formatting
-plot_results
-
 # since it's difficult to tell which alpha is the lowest just from the graph, print result below:
 results$alphas[which.min(results$rmse)]
+
+# It seems like an alpha value of 0.4 is best here, but since the rmse is the same to the hundredths decimal place as the RMSE 
+# we got when running the initial elastic net regression with alpha = 0.5, we will not add it to the table
 
 # See if there is a better result that can be obtained by finding the best combination of alpha and lambda
 
 alpha_values <- seq(0, 1, by = 0.1)  # 0 for Ridge, 1 for Lasso, 0.5 for Elastic Net
-lambda_values <- seq(from = 0.02, to = 0.0000001, length.out = 100)
+lambda_values <- seq(from = 0.01, to = 1, length.out = 500)
 
 # Create an empty matrix to store cross-validated errors
 cv_errors <- matrix(NA, nrow = length(alpha_values), ncol = length(lambda_values),
@@ -359,24 +407,60 @@ for (i in seq_along(alpha_values)) {
   alpha <- alpha_values[i]
   
   # Run cross-validated glmnet with a vector of lambda values
-  cv_model <- cv.glmnet(x = as.matrix(train_set_numeric[, predictor_names]), y = train_set_numeric$Age,
+  cv_model <- cv.glmnet(x = as.matrix(train_set_continuous[, predictor_names]), 
+                        y = train_set_continuous$Age,
                         alpha = alpha, lambda = lambda_values)
   
   # Store the cross-validated errors
   cv_errors[i, ] <- cv_model$cvm
 }
 
-cv_errors
+# Find the minimum cross-validated error and its corresponding alpha and lambda
+min_error <- min(cv_errors)
+min_index <- which(cv_errors == min(cv_errors), arr.ind = TRUE)
+
+# Extract the row and column indices
+best_alpha_index <- min_index[1, 1]
+best_lambda_index <- min_index[1, 2]
+
+# Extract the best alpha and lambda
+best_alpha <- alpha_values[best_alpha_index]
+best_lambda <- lambda_values[best_lambda_index]
+
+# Convert to numeric if needed
+best_alpha <- as.numeric(best_alpha)
+best_lambda <- as.numeric(best_lambda)
+
+# Fit the final model using the best alpha and lambda
+final_model <- glmnet(x = as.matrix(train_set_continuous[, predictor_names]), 
+                      y = train_set_continuous$Age,
+                      alpha = best_alpha, lambda = best_lambda)
+
+# Make predictions on the test set
+predictions <- predict(final_model, s = best_lambda, 
+                       newx = as.matrix(test_set_continuous[, predictor_names]))
+
+# Calculate RMSE
+rmse <- RMSE(test_set_continuous$Age, predictions)
+rmse
+cat("Best Alpha:", best_alpha, "\n")
+cat("Best Lambda:", best_lambda, "\n")
+cat("Test Set RMSE:", rmse, "\n")
+
+# The RMSE obtained with "optimized" parameters still doesn't beat the default parameters we already used.
+# This could be due to underfitting, the range of hyperparameter values not being inclusive enough, and/or 
+# may not be effective since we've already done some feature engineering by adding interaction terms.
+# Since the RMSE is higher, we will avoid adding the RMSE to the table to avoid cluttering it up.
 
 # try random forest model instead
-rf_model <- randomForest(Age ~ ., data = train_set, ntree = 500)
-predictions <- predict(rf_model, test_set)
-rmse_7 <- RMSE(predictions, test_set$Age)
-rmse_7
+rf_model <- randomForest(Age ~ ., data = train_set_intxns, ntree = 500)
+predictions <- predict(rf_model, test_set_intxns)
+rmse_8 <- RMSE(predictions, test_set_intxns$Age)
+rmse_8
 
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Random Forest - Default Params",
-                                 RMSE = rmse_7))
+                                 RMSE = rmse_8))
 rmse_summary
 
 # fine tune the model:
@@ -396,14 +480,15 @@ param_grid <- expand.grid(
 # Create an empty list to store the models
 models <- list()
 
-# Iterate over each combination of parameters
+# Iterate over each combination of parameters 
+# WARNING: Note that this code will take around 5 minutes to run.
 for (i in 1:nrow(param_grid)) {
   params <- param_grid[i, ]
   
   # Train the model with the current set of parameters
   model <- randomForest(
-    x = train_set[, colnames(train_set_numeric) != "Age"],
-    y = train_set$Age,
+    x = train_set_intxns[, colnames(train_set_intxns) != "Age"],
+    y = train_set_intxns$Age,
     mtry = params$mtry,
     nodesize = params$nodesize,
     ntree = params$ntree
@@ -423,10 +508,10 @@ for (i in seq_along(models)) {
   model <- models[[i]]
   
   # Make predictions on the test set
-  predictions <- predict(model, newdata = test_set[, colnames(test_set) != "Age"])
+  predictions <- predict(model, newdata = test_set_intxns[, colnames(test_set_intxns) != "Age"])
   
   # Calculate RMSE
-  rmse_values[i] <- RMSE(predictions, test_set$Age)
+  rmse_values[i] <- RMSE(predictions, test_set_intxns$Age)
 }
 
 # Find the index of the model with the lowest RMSE
@@ -438,31 +523,32 @@ names(models[best_model_index])
 # looks like the best parameters are mtry = 2, nodesize = 5, and ntree = 500
 
 # Print the RMSE values
-rmse_8 <- rmse_values[best_model_index]
+rmse_9 <- rmse_values[best_model_index]
+rmse_9
 
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Random Forest - Tuned Params",
-                                 RMSE = rmse_8))
+                                 RMSE = rmse_9))
 rmse_summary
 
 # We could try more values for fine tuning, but it would take a lot of run time
 # and it doesn't seem like tuning is making a significant difference in RMSE, anyway
 
-# Let's try a gradient boosting model
+# Let's try a gradient boosting model, since it's generally known for improved performance over 
+# random forests and like random forests, is capable of capturing non-linear relationships
 
 # Separate out x and y variables
 
-x_train <- subset(train_set_numeric, select = -c(Age, Sex))
-y_train <- train_set_numeric$Age
-x_test <- subset(test_set_numeric, select = -c(Age, Sex))
-y_test <- test_set_numeric$Age
+x_train <- subset(train_set_continuous, select = -c(Age))
+y_train <- train_set_continuous$Age
+x_test <- subset(test_set_continuous, select = -c(Age))
+y_test <- test_set_continuous$Age
 
 # Convert data to the format expected by xgboost
 dtrain <- xgb.DMatrix(data = as.matrix(x_train), label = y_train)
 dtest <- xgb.DMatrix(data = as.matrix(x_test), label = y_test)
 
-
-# Set hyperparameters (you may need to tune these)
+# Set hyperparameters (we may need to tune these)
 params <- list(
   objective = "reg:squarederror",  # Regression task
   eval_metric = "rmse",            # Evaluation metric (Root Mean Squared Error)
@@ -476,18 +562,15 @@ xgb_model <- xgboost(data = dtrain, params = params, nrounds = 100)
 
 # Make predictions on the training set (you can use a separate test set for predictions)
 predictions <- predict(xgb_model, as.matrix(x_test))
-rmse9 <- RMSE(predictions, y_test)
-rmse9
+rmse_10 <- RMSE(predictions, y_test)
+rmse_10
 
 rmse_summary <- bind_rows(rmse_summary,
-                          tibble(Model = "Gradient Boosted Model",
-                                 RMSE = rmse_9))
+                          tibble(Model = "Gradient Boosted Model - Default Params",
+                                 RMSE = rmse_10))
 rmse_summary
 
 # Tune the model
-
-# Create a matrix for training and initialize testing data
-
 
 # Define hyperparameter grid
 param_grid <- expand.grid(
@@ -500,6 +583,7 @@ param_grid <- expand.grid(
 )
 
 # Function to train and evaluate model for a given set of hyperparameters
+
 train_and_evaluate <- function(params, train_data, test_data) {
   # Convert non-numeric columns to numeric using one-hot encoding
   train_data_matrix <- model.matrix(~ . - 1, data = train_data)
@@ -524,7 +608,9 @@ train_and_evaluate <- function(params, train_data, test_data) {
 # Apply the function to all combinations of hyperparameters
 results <- apply(param_grid, 1, function(row) {
   params <- as.list(row)
-  train_and_evaluate(params, train_set_numeric, test_set_numeric)
+  train_data <- train_set_continuous
+  test_data <- test_set_continuous
+  train_and_evaluate(params, train_data, test_data)
 })
 
 
@@ -549,12 +635,12 @@ params <- list(
 
 xgb_model <- xgboost(data = dtrain, params = params, nrounds = 100)
 predictions <- predict(xgb_model, as.matrix(x_test))
-rmse_10 <- RMSE(predictions, y_test)
-rmse_10
+rmse_11 <- RMSE(predictions, y_test)
+rmse_11
 
 rmse_summary <- bind_rows(rmse_summary,
-                          tibble(Model = "Gradient Boosted Model - Optimized Params",
-                                 RMSE = rmse_10))
+                          tibble(Model = "Gradient Boosted Model - Tuned Params",
+                                 RMSE = rmse_11))
 rmse_summary
 
 # It seems like we are running into issues with overfitting and the RMSE is not improving
@@ -598,7 +684,7 @@ xgb_pred <- predict(xgb_model, newdata = as.matrix(subset(val_set, select = -c(A
 stacking_data <- data.frame(rf_pred, xgb_pred, Age = val_set$Age)
 
 # Train meta-model (e.g., linear regression) on the stacked predictions
-meta_model <- lm(Age ~ ., data = stacking_data)
+meta_model <- gbm(Age ~ ., data = stacking_data)
 
 # Make predictions on the test set
 rf_test_pred <- predict(rf_model, newdata = test_set)
@@ -614,7 +700,4 @@ final_predictions <- predict(meta_model, newdata = stacking_test_data)
 final_rmse <- RMSE(final_predictions, test_set$Age)
 print(final_rmse)
 
-
-
-
-
+# Stacking gave us an abysmal result, so we will stick with simpler methods for this one.
