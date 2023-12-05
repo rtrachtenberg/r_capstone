@@ -1,0 +1,2033 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Capstone Project: Abalone Age Prediction},
+  pdfauthor={Roxie Trachtenberg},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Capstone Project: Abalone Age Prediction}
+\author{Roxie Trachtenberg}
+\date{2023-12-04}
+
+\begin{document}
+\maketitle
+
+\hypertarget{abalone-age-prediction}{%
+\section{Abalone Age Prediction}\label{abalone-age-prediction}}
+
+\hypertarget{introduction}{%
+\subsection{Introduction}\label{introduction}}
+
+The abalone dataset, downloaded from the AppliedPredictiveModeling R
+package (which can be accessed at this
+\href{https://github.com/cran/AppliedPredictiveModeling/tree/master/data}{link}),
+contains 4,177 instances of physical and qualitative observations of
+this type of marine snail. The data originated from a 1995 study
+conducted by UC Irvine and contains the following data:
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2466}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2466}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2466}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2603}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Variable Name
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Variable Type
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Units
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Description
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Sex & Categorical & NA & Split into 3 categories: M (Male), F (Female),
+and I (Immature) \\
+LongestShell & Continuous & millimeters & Abalone length measured from
+ends of longest shell \\
+Diameter & Continuous & millimeters & Abalone shell diameter
+E(perpendicular to longest shell length) \\
+Height & Continuous & millimeters & Abalone height, including meat
+within shell \\
+WholeWeight & Continuous & grams & Whole abalone weight \\
+ShuckedWeight & Continuous & grams & Weight of abalone flesh (not
+including exoskeleton or shell) \\
+VisceraWeight & Continuous & grams & Gut weight after bleeding \\
+ShellWeight & Continuous & grams & Shell weight only (after being
+dried) \\
+Rings & Integer & NA & Number of abalone rings observed, used to derive
+age in years \\
+\end{longtable}
+
+According to the researchers that piloted the 1995 study, the age of an
+abalone is determined by cutting and staining the shell, followed by
+analysis under microscope, which is a cumbersome task. All information
+regarding the origin of this data can be found in the UC Irvine Machine
+Learning Repository archives,
+\href{http://archive.ics.uci.edu/dataset/1/abalone}{here}. The goal of
+this project is to see if the measurements already a part of this
+dataset can be used to predict the age instead of using the
+aforementioned time-consuming and invasive procedures.
+
+\hypertarget{load-libraries}{%
+\subsection{Load Libraries}\label{load-libraries}}
+
+First, we need to install packages and load libraries of those that are
+needed to complete the project and run all of the project code.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Install packages}
+\NormalTok{package\_names }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"AppliedPredictiveModeling"}\NormalTok{, }
+                   \StringTok{"ggplot2"}\NormalTok{, }\StringTok{"dplyr"}\NormalTok{, }\StringTok{"tidyverse"}\NormalTok{, }\StringTok{"caret"}\NormalTok{,}
+                   \StringTok{"randomForest"}\NormalTok{, }\StringTok{"corrplot"}\NormalTok{, }\StringTok{"glmnet"}\NormalTok{, }\StringTok{"rmarkdown"}\NormalTok{,}
+                   \StringTok{"RColorBrewer"}\NormalTok{, }\StringTok{"xgboost"}\NormalTok{, }\StringTok{"DAAG"}\NormalTok{, }\StringTok{"Metrics"}\NormalTok{)}
+\CommentTok{\# Load libraries}
+\NormalTok{libraries\_to\_load }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"AppliedPredictiveModeling"}\NormalTok{, }
+                       \StringTok{"ggplot2"}\NormalTok{, }\StringTok{"dplyr"}\NormalTok{, }\StringTok{"tidyverse"}\NormalTok{, }\StringTok{"caret"}\NormalTok{,}
+                       \StringTok{"randomForest"}\NormalTok{, }\StringTok{"corrplot"}\NormalTok{, }\StringTok{"glmnet"}\NormalTok{, }\StringTok{"rmarkdown"}\NormalTok{,}
+                       \StringTok{"RColorBrewer"}\NormalTok{, }\StringTok{"xgboost"}\NormalTok{, }\StringTok{"DAAG"}\NormalTok{, }\StringTok{"Metrics"}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{ (lib }\ControlFlowTok{in}\NormalTok{ libraries\_to\_load) \{}
+  \FunctionTok{library}\NormalTok{(lib, }\AttributeTok{character.only =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'dplyr'
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+\end{verbatim}
+
+\begin{verbatim}
+## -- Attaching core tidyverse packages ------------------------ tidyverse 2.0.0 --
+## v forcats   1.0.0     v stringr   1.5.0
+## v lubridate 1.9.2     v tibble    3.2.1
+## v purrr     1.0.1     v tidyr     1.3.0
+## v readr     2.1.4     
+## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()
+## i Use the ]8;;http://conflicted.r-lib.org/conflicted package]8;; to force all conflicts to become errors
+## Loading required package: lattice
+## 
+## 
+## Attaching package: 'caret'
+## 
+## 
+## The following object is masked from 'package:purrr':
+## 
+##     lift
+## 
+## 
+## randomForest 4.7-1.1
+## 
+## Type rfNews() to see new features/changes/bug fixes.
+## 
+## 
+## Attaching package: 'randomForest'
+## 
+## 
+## The following object is masked from 'package:dplyr':
+## 
+##     combine
+## 
+## 
+## The following object is masked from 'package:ggplot2':
+## 
+##     margin
+## 
+## 
+## corrplot 0.92 loaded
+## 
+## Loading required package: Matrix
+## 
+## 
+## Attaching package: 'Matrix'
+## 
+## 
+## The following objects are masked from 'package:tidyr':
+## 
+##     expand, pack, unpack
+## 
+## 
+## Loaded glmnet 4.1-6
+## 
+## 
+## Attaching package: 'xgboost'
+## 
+## 
+## The following object is masked from 'package:dplyr':
+## 
+##     slice
+## 
+## 
+## 
+## Attaching package: 'Metrics'
+## 
+## 
+## The following objects are masked from 'package:caret':
+## 
+##     precision, recall
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Load and examine abalone dataset}
+\FunctionTok{data}\NormalTok{(abalone)}
+\FunctionTok{dim}\NormalTok{(abalone)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 4177    9
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{str}\NormalTok{(abalone)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 'data.frame':    4177 obs. of  9 variables:
+##  $ Type         : Factor w/ 3 levels "F","I","M": 3 3 1 3 2 2 1 1 3 1 ...
+##  $ LongestShell : num  0.455 0.35 0.53 0.44 0.33 0.425 0.53 0.545 0.475 0.55 ...
+##  $ Diameter     : num  0.365 0.265 0.42 0.365 0.255 0.3 0.415 0.425 0.37 0.44 ...
+##  $ Height       : num  0.095 0.09 0.135 0.125 0.08 0.095 0.15 0.125 0.125 0.15 ...
+##  $ WholeWeight  : num  0.514 0.226 0.677 0.516 0.205 ...
+##  $ ShuckedWeight: num  0.2245 0.0995 0.2565 0.2155 0.0895 ...
+##  $ VisceraWeight: num  0.101 0.0485 0.1415 0.114 0.0395 ...
+##  $ ShellWeight  : num  0.15 0.07 0.21 0.155 0.055 0.12 0.33 0.26 0.165 0.32 ...
+##  $ Rings        : int  15 7 9 10 7 8 20 16 9 19 ...
+\end{verbatim}
+
+Upon initial observation, it looks like the dataset has 4,177
+observations and 9 columns, with variable information that generally
+matches what is in the documentation.
+
+\hypertarget{data-cleaning}{%
+\subsection{Data Cleaning}\label{data-cleaning}}
+
+Now that we have our libraries and dataset loaded without error, we can
+inspect the structure and contents of the data and identify any parts
+that may require cleaning, formatting, and/or handling of outliers or
+missing data.
+
+First, we created a new column for ``Age'' (which is just the number of
+rings + 1.5), removed the ``Rings'' column to avoid confusion and issues
+with multicollinearity (Age and Rings would have a perfect correlation
+of 1 if the ``Rings'' variable were left in), and renamed the ``Type''
+variable to ``Sex'' for clarity.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{abalone }\OtherTok{\textless{}{-}}\NormalTok{ abalone }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{mutate}\NormalTok{(}\AttributeTok{Age =}\NormalTok{ Rings }\SpecialCharTok{+} \FloatTok{1.5}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{rename}\NormalTok{(}\AttributeTok{Sex =}\NormalTok{ Type) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{Rings)}
+\end{Highlighting}
+\end{Shaded}
+
+Next, we checked the minimum of each variable (ignoring the result of
+the categorical variable, ``Sex''), to ensure that there were no ``0''
+measurements.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{apply}\NormalTok{(abalone, }\DecValTok{2}\NormalTok{, min)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##           Sex  LongestShell      Diameter        Height   WholeWeight 
+##           "F"       "0.075"       "0.055"       "0.000"      "0.0020" 
+## ShuckedWeight VisceraWeight   ShellWeight           Age 
+##      "0.0010"      "0.0005"      "0.0015"        " 2.5"
+\end{verbatim}
+
+It looks like the ``Height'' variable has at least one value of 0 that
+should be removed. It does not make sense that an abalone would not have
+a measurement for height and this could skew our results down the line
+when we apply models to the data.
+
+In addition, we know from a logical perspective that the shucked and
+viscera weight cannot be larger than whole weight, so any observations
+that show this are likely erroneous.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sum}\NormalTok{(abalone}\SpecialCharTok{$}\NormalTok{ShuckedWeight }\SpecialCharTok{\textgreater{}=}\NormalTok{ abalone}\SpecialCharTok{$}\NormalTok{WholeWeight)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 4
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# there are 4 values here that should be removed}
+
+\FunctionTok{sum}\NormalTok{(abalone}\SpecialCharTok{$}\NormalTok{VisceraWeight }\SpecialCharTok{\textgreater{}=}\NormalTok{ abalone}\SpecialCharTok{$}\NormalTok{WholeWeight)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# There are no values here that need to be removed}
+\end{Highlighting}
+\end{Shaded}
+
+Now that we know which values need to be removed, let's generate a clean
+dataset:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{abalone\_clean }\OtherTok{\textless{}{-}}\NormalTok{ abalone }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(ShuckedWeight }\SpecialCharTok{\textless{}=}\NormalTok{ WholeWeight) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(Height }\SpecialCharTok{!=} \DecValTok{0}\NormalTok{)}
+
+\FunctionTok{dim}\NormalTok{(abalone\_clean)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 4171    9
+\end{verbatim}
+
+The clean dataset has 4,171 observations and 9 columns, meaning we
+successfully removed the 6 erroneous observations.
+
+\hypertarget{exploratory-data-analysis-eda}{%
+\subsection{Exploratory Data Analysis
+(EDA)}\label{exploratory-data-analysis-eda}}
+
+\hypertarget{plot-formatting}{%
+\subsubsection{Plot Formatting}\label{plot-formatting}}
+
+Now that we have a clean dataset, let's get a feel for the data and how
+it's distributed throughout and within features. Since we will be doing
+a decent amount of plotting and graphing, let's first look into a
+color-blind friendly palette to use throughout our analysis using the
+RColorBrewer package.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{display.brewer.all}\NormalTok{(}\AttributeTok{colorblindFriendly =} \ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{r_capstone_rmd_file_files/figure-latex/unnamed-chunk-6-1.pdf}
+
+We will be using the ``Paired'' and ``Set2'' palettes, so let's note
+their hexadecimal color names for future use using the following code:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{display.brewer.pal}\NormalTok{(}\AttributeTok{n =} \DecValTok{8}\NormalTok{, }\AttributeTok{name =} \StringTok{\textquotesingle{}Paired\textquotesingle{}}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{r_capstone_rmd_file_files/figure-latex/unnamed-chunk-7-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{brewer.pal}\NormalTok{(}\AttributeTok{n =} \DecValTok{8}\NormalTok{, }\AttributeTok{name =} \StringTok{"Paired"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "#A6CEE3" "#1F78B4" "#B2DF8A" "#33A02C" "#FB9A99" "#E31A1C" "#FDBF6F"
+## [8] "#FF7F00"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{display.brewer.pal}\NormalTok{(}\AttributeTok{n =} \DecValTok{8}\NormalTok{, }\AttributeTok{name =} \StringTok{\textquotesingle{}Set2\textquotesingle{}}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{r_capstone_rmd_file_files/figure-latex/unnamed-chunk-7-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{brewer.pal}\NormalTok{(}\AttributeTok{n =} \DecValTok{8}\NormalTok{, }\AttributeTok{name =} \StringTok{"Set2"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "#66C2A5" "#FC8D62" "#8DA0CB" "#E78AC3" "#A6D854" "#FFD92F" "#E5C494"
+## [8] "#B3B3B3"
+\end{verbatim}
+
+Finally, let's define a shortcut for applying good general formatting to
+plots to save processing time later.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{gen\_formatting }\OtherTok{\textless{}{-}} \FunctionTok{theme}\NormalTok{(}\AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{),}
+                        \AttributeTok{axis.title.y =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{margin =} \FunctionTok{unit}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{20}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{), }\StringTok{"pt"}\NormalTok{))}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{univariate-eda}{%
+\subsubsection{Univariate EDA}\label{univariate-eda}}
+
+First, let's visualize the distribution of abalone weights in the full
+dataset:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plot1 }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(abalone\_clean, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ WholeWeight)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{fill =} \StringTok{"\#FDBF6F"}\NormalTok{, }\AttributeTok{color =} \StringTok{"\#FF7F00"}\NormalTok{, }\AttributeTok{alpha =} \FloatTok{0.7}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Distribution of Abalone Weight"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Weight (grams)"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Count"}\NormalTok{) }\SpecialCharTok{+}
+\NormalTok{  gen\_formatting}
+
+\NormalTok{plot1}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+\end{verbatim}
+
+\includegraphics{r_capstone_rmd_file_files/figure-latex/unnamed-chunk-9-1.pdf}
+
+It looks like whole weight of abalones in our dataset fall generally
+below 3 grams, with a majority clustered between 0 and 1.5 grams. This
+looks like a fairly normal distribution of weights throughout the
+dataset.
+
+Now, let's explore whether there are significant weight differences by
+Sex:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Visualize distribution of abalone weights by Sex}
+\NormalTok{plot2 }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(abalone\_clean, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Sex, }\AttributeTok{y =}\NormalTok{ WholeWeight, }\AttributeTok{fill =}\NormalTok{ Sex)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_boxplot}\NormalTok{() }\SpecialCharTok{+} 
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Distribution of Abalone Weight by Sex"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Sex"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Weight (grams)"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_fill\_brewer}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Set2"}\NormalTok{, }\AttributeTok{labels =} \FunctionTok{c}\NormalTok{(}\StringTok{"Female"}\NormalTok{, }\StringTok{"Immature"}\NormalTok{, }\StringTok{"Male"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{scale\_x\_discrete}\NormalTok{(}\AttributeTok{labels =} \FunctionTok{c}\NormalTok{(}\StringTok{"Female"}\NormalTok{, }\StringTok{"Immature"}\NormalTok{, }\StringTok{"Male"}\NormalTok{)) }\SpecialCharTok{+}
+\NormalTok{  gen\_formatting}
+  
+\NormalTok{plot2 }
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{r_capstone_rmd_file_files/figure-latex/unnamed-chunk-10-1.pdf}
+
+Looking at this, it's pretty clear that there is a significant weight
+difference from Immature to mature abalones, but the male/female
+difference is not immediately clear. Let's use a t-test to see if there
+is a significant difference in weight between these two groups:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Conduct independent t{-}test: Are females significantly heavier than males?}
+
+\CommentTok{\# First, test that homogeneity of variance is achieved (prerequisite for t{-}test)}
+\NormalTok{abalone\_test }\OtherTok{\textless{}{-}}\NormalTok{ abalone\_clean }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(Sex }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"M"}\NormalTok{, }\StringTok{"F"}\NormalTok{))}
+\NormalTok{res }\OtherTok{\textless{}{-}} \FunctionTok{var.test}\NormalTok{(WholeWeight }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Sex, }\AttributeTok{data =}\NormalTok{ abalone\_test)}
+\NormalTok{res}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  F test to compare two variances
+## 
+## data:  WholeWeight by Sex
+## F = 0.83619, num df = 1306, denom df = 1527, p-value = 0.0008249
+## alternative hypothesis: true ratio of variances is not equal to 1
+## 95 percent confidence interval:
+##  0.7533735 0.9285163
+## sample estimates:
+## ratio of variances 
+##          0.8361923
+\end{verbatim}
+
+The ratio of variances is around 0.84, showing that variance is similar
+between male and female group and that we can move forward with our
+t-test.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{t.test}\NormalTok{(WholeWeight }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Sex, }\AttributeTok{var.equal =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{data =}\NormalTok{ abalone\_test)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Two Sample t-test
+## 
+## data:  WholeWeight by Sex
+## t = 3.2305, df = 2833, p-value = 0.00125
+## alternative hypothesis: true difference in means between group F and group M is not equal to 0
+## 95 percent confidence interval:
+##  0.02164586 0.08849956
+## sample estimates:
+## mean in group F mean in group M 
+##       1.0465321       0.9914594
+\end{verbatim}
+
+The t-value is 3.2305. A higher absolute t-value indicates a larger
+difference between the groups. This represents the number of standard
+deviations that the sample mean (mean in group F minus mean in group M)
+is from the null hypothesis mean (0, assuming no difference between the
+groups). In summary, the low p-value (0.00125) and the 95\% confidence
+interval (not including 0) suggest that there is evidence to reject the
+null hypothesis and that there is a significant difference between
+sample means in abalone female weight versus male weight.
+
+We know there are differences in weight by Sex, but what about Age?
+Let's now focus on our target variable, Age, and visualize weight by age
+group:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Visualize average abalone weight by age group}
+\NormalTok{plot3 }\OtherTok{\textless{}{-}}\NormalTok{ abalone\_clean }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(Sex }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"M"}\NormalTok{, }\StringTok{"F"}\NormalTok{)) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{group\_by}\NormalTok{(Age) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{summarise}\NormalTok{(}\AttributeTok{avg\_weight =} \FunctionTok{mean}\NormalTok{(WholeWeight)) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Age, }\AttributeTok{y =}\NormalTok{ avg\_weight)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{size =} \DecValTok{3}\NormalTok{, }\AttributeTok{shape =} \DecValTok{23}\NormalTok{, }\AttributeTok{color =} \StringTok{"\#FF7F00"}\NormalTok{, }\AttributeTok{fill =} \StringTok{"\#FDBF6F"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Average Weight per Abalone Age Group"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Age Group"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Average Weight by Age Group (grams)"}\NormalTok{) }\SpecialCharTok{+}
+\NormalTok{  gen\_formatting}
+
+\NormalTok{plot3}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{r_capstone_rmd_file_files/figure-latex/unnamed-chunk-13-1.pdf}
+
+This plot shows a general increasing trend and direct relationship
+between age group and average weight. However, there are some
+funky-looking values in the top right-hand corner of the plot (for age
+groups of around 18 yrs and above). Average is really only a good
+central tendency measure when the data in each age group is normally
+distributed and has a healthy sample size. It is possible that the
+distribution of weight data in the higher age groups is not normally
+distributed or has low sample size.
+
+Let's investigate distribution of age in the data:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Visualize age distribution within the abalone dataset:}
+\NormalTok{plot4 }\OtherTok{\textless{}{-}}\NormalTok{ abalone }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{Sex) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{group\_by}\NormalTok{(Age) }\SpecialCharTok{\%\textgreater{}\%}  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(Age)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{fill =} \StringTok{"\#66C2A5"}\NormalTok{, }\AttributeTok{color =} \StringTok{"\#B3B3B3"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Distribution of Abalone Age"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Age"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Count"}\NormalTok{) }\SpecialCharTok{+}
+\NormalTok{  gen\_formatting}
+
+\NormalTok{plot4}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{r_capstone_rmd_file_files/figure-latex/unnamed-chunk-14-1.pdf}
+
+Interesting - it looks like our initial hunch about low sample size was
+correct and our dataset suffers from survivorship bias, in that there
+are fewer abalones that live to older age and therefore, there is less
+data to reliably predict abalones of older age. We will keep this
+unbalanced dataset issue in mind as we run machine learning models.
+
+Is there at least a somewhat even distribution of males and females in
+each age group, even if sample size is lower in older age groups?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Visualize distribution of abalone age by Sex:}
+\NormalTok{facet\_colors\_fill }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"\#A6CEE3"}\NormalTok{, }\StringTok{"\#FB9A99"}\NormalTok{, }\StringTok{"\#B2DF8A"}\NormalTok{)}
+\NormalTok{facet\_colors\_color }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"\#1F78B4"}\NormalTok{, }\StringTok{"\#E31A1C"}\NormalTok{, }\StringTok{"\#33A02C"}\NormalTok{)}
+
+\NormalTok{plot5 }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(abalone\_clean, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Age, }\AttributeTok{fill =} \FunctionTok{as.factor}\NormalTok{(Sex), }\AttributeTok{color =} \FunctionTok{as.factor}\NormalTok{(Sex))) }\SpecialCharTok{+}
+  \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{binwidth =} \DecValTok{2}\NormalTok{, }\AttributeTok{alpha =} \FloatTok{0.7}\NormalTok{) }\SpecialCharTok{+}  \CommentTok{\# Custom bar color}
+  \FunctionTok{scale\_fill\_manual}\NormalTok{(}\AttributeTok{values =} \FunctionTok{setNames}\NormalTok{(facet\_colors\_fill, }\FunctionTok{unique}\NormalTok{(abalone\_clean}\SpecialCharTok{$}\NormalTok{Sex)),}
+                    \AttributeTok{name =} \StringTok{"Sex"}\NormalTok{,}
+                    \AttributeTok{labels =} \FunctionTok{c}\NormalTok{(}\AttributeTok{F =} \StringTok{"Female"}\NormalTok{, }\AttributeTok{I =} \StringTok{"Immature"}\NormalTok{, }\AttributeTok{M =} \StringTok{"Male"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{values =} \FunctionTok{setNames}\NormalTok{(facet\_colors\_color, }\FunctionTok{unique}\NormalTok{(abalone\_clean}\SpecialCharTok{$}\NormalTok{Sex)),}
+                     \AttributeTok{name =} \StringTok{"Sex"}\NormalTok{,}
+                     \AttributeTok{labels =} \FunctionTok{c}\NormalTok{(}\AttributeTok{F =} \StringTok{"Female"}\NormalTok{, }\AttributeTok{I =} \StringTok{"Immature"}\NormalTok{, }\AttributeTok{M =} \StringTok{"Male"}\NormalTok{)) }\SpecialCharTok{+} 
+  \FunctionTok{facet\_grid}\NormalTok{(Sex }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{labeller =} \FunctionTok{as\_labeller}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\AttributeTok{F =} \StringTok{"Female"}\NormalTok{, }\AttributeTok{I =} \StringTok{"Immature"}\NormalTok{, }\AttributeTok{M =} \StringTok{"Male"}\NormalTok{))) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Distribution of Abalone Age by Sex"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Age"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Count"}\NormalTok{) }\SpecialCharTok{+}
+\NormalTok{  gen\_formatting}
+
+\NormalTok{plot5}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{r_capstone_rmd_file_files/figure-latex/unnamed-chunk-15-1.pdf}
+
+It looks like there is a normal distribution of grown males and females
+in each age group. Immature abalones show more of a right-skewed
+distribution.
+
+\hypertarget{multivariate-eda}{%
+\subsubsection{Multivariate EDA}\label{multivariate-eda}}
+
+Now that we have made observations about some key variables in our
+dataset, such as, age, sex, and weight, let's explore their associations
+with one another through a correlation plot:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cor\_table }\OtherTok{=}\NormalTok{ abalone\_clean }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{Sex) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{cor}\NormalTok{()}
+\NormalTok{corplot1 }\OtherTok{\textless{}{-}} \FunctionTok{corrplot}\NormalTok{(cor\_table, }\AttributeTok{method =} \StringTok{\textquotesingle{}number\textquotesingle{}}\NormalTok{, }\AttributeTok{diag =} \ConstantTok{FALSE}\NormalTok{) }\CommentTok{\# colorful number}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{r_capstone_rmd_file_files/figure-latex/unnamed-chunk-16-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{corplot1}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## $corr
+##               LongestShell  Diameter    Height WholeWeight ShuckedWeight
+## LongestShell     1.0000000 0.9867715 0.8277850   0.9252388     0.8993070
+## Diameter         0.9867715 1.0000000 0.8339847   0.9254302     0.8945553
+## Height           0.8277850 0.8339847 1.0000000   0.8195659     0.7766709
+## WholeWeight      0.9252388 0.9254302 0.8195659   1.0000000     0.9704625
+## ShuckedWeight    0.8993070 0.8945553 0.7766709   0.9704625     1.0000000
+## VisceraWeight    0.9028490 0.8995504 0.7985533   0.9663343     0.9329124
+## ShellWeight      0.8983006 0.9059778 0.8192815   0.9558888     0.8840581
+## Age              0.5557164 0.5736965 0.5568703   0.5394067     0.4211111
+##               VisceraWeight ShellWeight       Age
+## LongestShell      0.9028490   0.8983006 0.5557164
+## Diameter          0.8995504   0.9059778 0.5736965
+## Height            0.7985533   0.8192815 0.5568703
+## WholeWeight       0.9663343   0.9558888 0.5394067
+## ShuckedWeight     0.9329124   0.8840581 0.4211111
+## VisceraWeight     1.0000000   0.9080402 0.5027982
+## ShellWeight       0.9080402   1.0000000 0.6273681
+## Age               0.5027982   0.6273681 1.0000000
+## 
+## $corrPos
+##            xName         yName x y      corr
+## 1   LongestShell      Diameter 1 7 0.9867715
+## 2   LongestShell        Height 1 6 0.8277850
+## 3   LongestShell   WholeWeight 1 5 0.9252388
+## 4   LongestShell ShuckedWeight 1 4 0.8993070
+## 5   LongestShell VisceraWeight 1 3 0.9028490
+## 6   LongestShell   ShellWeight 1 2 0.8983006
+## 7   LongestShell           Age 1 1 0.5557164
+## 8       Diameter  LongestShell 2 8 0.9867715
+## 9       Diameter        Height 2 6 0.8339847
+## 10      Diameter   WholeWeight 2 5 0.9254302
+## 11      Diameter ShuckedWeight 2 4 0.8945553
+## 12      Diameter VisceraWeight 2 3 0.8995504
+## 13      Diameter   ShellWeight 2 2 0.9059778
+## 14      Diameter           Age 2 1 0.5736965
+## 15        Height  LongestShell 3 8 0.8277850
+## 16        Height      Diameter 3 7 0.8339847
+## 17        Height   WholeWeight 3 5 0.8195659
+## 18        Height ShuckedWeight 3 4 0.7766709
+## 19        Height VisceraWeight 3 3 0.7985533
+## 20        Height   ShellWeight 3 2 0.8192815
+## 21        Height           Age 3 1 0.5568703
+## 22   WholeWeight  LongestShell 4 8 0.9252388
+## 23   WholeWeight      Diameter 4 7 0.9254302
+## 24   WholeWeight        Height 4 6 0.8195659
+## 25   WholeWeight ShuckedWeight 4 4 0.9704625
+## 26   WholeWeight VisceraWeight 4 3 0.9663343
+## 27   WholeWeight   ShellWeight 4 2 0.9558888
+## 28   WholeWeight           Age 4 1 0.5394067
+## 29 ShuckedWeight  LongestShell 5 8 0.8993070
+## 30 ShuckedWeight      Diameter 5 7 0.8945553
+## 31 ShuckedWeight        Height 5 6 0.7766709
+## 32 ShuckedWeight   WholeWeight 5 5 0.9704625
+## 33 ShuckedWeight VisceraWeight 5 3 0.9329124
+## 34 ShuckedWeight   ShellWeight 5 2 0.8840581
+## 35 ShuckedWeight           Age 5 1 0.4211111
+## 36 VisceraWeight  LongestShell 6 8 0.9028490
+## 37 VisceraWeight      Diameter 6 7 0.8995504
+## 38 VisceraWeight        Height 6 6 0.7985533
+## 39 VisceraWeight   WholeWeight 6 5 0.9663343
+## 40 VisceraWeight ShuckedWeight 6 4 0.9329124
+## 41 VisceraWeight   ShellWeight 6 2 0.9080402
+## 42 VisceraWeight           Age 6 1 0.5027982
+## 43   ShellWeight  LongestShell 7 8 0.8983006
+## 44   ShellWeight      Diameter 7 7 0.9059778
+## 45   ShellWeight        Height 7 6 0.8192815
+## 46   ShellWeight   WholeWeight 7 5 0.9558888
+## 47   ShellWeight ShuckedWeight 7 4 0.8840581
+## 48   ShellWeight VisceraWeight 7 3 0.9080402
+## 49   ShellWeight           Age 7 1 0.6273681
+## 50           Age  LongestShell 8 8 0.5557164
+## 51           Age      Diameter 8 7 0.5736965
+## 52           Age        Height 8 6 0.5568703
+## 53           Age   WholeWeight 8 5 0.5394067
+## 54           Age ShuckedWeight 8 4 0.4211111
+## 55           Age VisceraWeight 8 3 0.5027982
+## 56           Age   ShellWeight 8 2 0.6273681
+## 
+## $arg
+## $arg$type
+## [1] "full"
+\end{verbatim}
+
+This plot indicates that we will need to proceed cautiously regarding
+multicollinearity when running machine learning algorithms. However,
+features that are highly correlated with the age (e.g., ShellWeight,
+Diameter) might be good candidates for inclusion in our machine learning
+models over others. Viscera weight and whole weight, among other
+measurements like this, are highly correlated, so this may provide a
+good case for using interaction terms or dimensionality reduction prior
+to running machine learning models. Finally, it is important to note
+that higher correlations do not necessarily imply causation or better
+predictive power in a machine learning context.
+
+\hypertarget{machine-learning-models}{%
+\subsection{Machine Learning Models}\label{machine-learning-models}}
+
+\hypertarget{linear-regression}{%
+\subsubsection{Linear Regression}\label{linear-regression}}
+
+Now that we have a good sense of our cleaned up data, let's start
+running some models!
+
+First, let's define our RMSE function, set the seed (so that anyone that
+reviews this will get the same indices and therefore model results that
+I do when running my code below), and split our data into training and
+test sets:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Define RMSE function}
+\NormalTok{RMSE }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(true\_ratings, predicted\_ratings) \{}
+  \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((true\_ratings }\SpecialCharTok{{-}}\NormalTok{ predicted\_ratings)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{\}}
+
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{100}\NormalTok{) }\CommentTok{\# Set the seed}
+
+\NormalTok{train\_index }\OtherTok{\textless{}{-}} \FunctionTok{createDataPartition}\NormalTok{(abalone\_clean}\SpecialCharTok{$}\NormalTok{Age, }\AttributeTok{p =} \FloatTok{0.8}\NormalTok{, }\AttributeTok{list =} \ConstantTok{FALSE}\NormalTok{)}
+\NormalTok{train\_set }\OtherTok{\textless{}{-}}\NormalTok{ abalone\_clean[train\_index, ]}
+\NormalTok{test\_set }\OtherTok{\textless{}{-}}\NormalTok{ abalone\_clean[}\SpecialCharTok{{-}}\NormalTok{train\_index, ]}
+\end{Highlighting}
+\end{Shaded}
+
+Let's run a simple linear regression model (to use primarily for
+comparison) with just ShellWeight (our variable most highly correlated
+with Age according to the correlation plot above) as a predictor:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Prepare the model}
+\NormalTok{lm\_fit }\OtherTok{\textless{}{-}}\NormalTok{ train\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{lm}\NormalTok{(Age }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ShellWeight, }\AttributeTok{data =}\NormalTok{ .)}
+
+\CommentTok{\# Make predictions using the fitted model}
+\NormalTok{pred }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(lm\_fit, test\_set)}
+
+\CommentTok{\# Generate root mean squared error (RMSE) value }
+\NormalTok{rmse\_1 }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(test\_set}\SpecialCharTok{$}\NormalTok{Age, pred)}
+
+\CommentTok{\# Save RMSE value in a table to track progress later}
+\NormalTok{rmse\_summary }\OtherTok{\textless{}{-}} \FunctionTok{tibble}\NormalTok{(}\AttributeTok{Model =} \StringTok{"Linear Reg {-} Shell Weight"}\NormalTok{, }\AttributeTok{RMSE =} \FunctionTok{round}\NormalTok{(rmse\_1, }\DecValTok{3}\NormalTok{))}
+\NormalTok{rmse\_summary}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 1 x 2
+##   Model                      RMSE
+##   <chr>                     <dbl>
+## 1 Linear Reg - Shell Weight   2.4
+\end{verbatim}
+
+Let's visualize our actual vs predicted values:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Visualize predicted vs actual values}
+\NormalTok{plot\_data }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Predicted\_value =}\NormalTok{ pred,   }
+                        \AttributeTok{Observed\_value =}\NormalTok{ test\_set}\SpecialCharTok{$}\NormalTok{Age) }
+
+\FunctionTok{ggplot}\NormalTok{(plot\_data, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Observed\_value, }\AttributeTok{y =}\NormalTok{ Predicted\_value)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_point}\NormalTok{() }\SpecialCharTok{+} 
+  \FunctionTok{geom\_abline}\NormalTok{(}\AttributeTok{intercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{slope =} \DecValTok{1}\NormalTok{, }\AttributeTok{color =} \StringTok{"\#66C2A5"}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Predicted vs Actual"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Actual Values"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Predicted Values"}\NormalTok{) }\SpecialCharTok{+}
+\NormalTok{  gen\_formatting}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{r_capstone_rmd_file_files/figure-latex/unnamed-chunk-19-1.pdf}
+
+As we can see, the model has a harder job predicting the younger (likely
+immature abalones) and older age groups correctly. We will experiment
+with using weights to fix this issue of unbalanced data in the random
+forest section. For now, let's try linear regression using all of the
+variables (aside from Age) as predictors to see if we can improve our
+result.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lm\_fit }\OtherTok{\textless{}{-}}\NormalTok{ train\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{lm}\NormalTok{(Age }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ .)}
+\NormalTok{pred }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(lm\_fit, test\_set)}
+\NormalTok{rmse\_2 }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(test\_set}\SpecialCharTok{$}\NormalTok{Age, pred)}
+
+\NormalTok{rmse\_summary }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(rmse\_summary,}
+                          \FunctionTok{tibble}\NormalTok{(}\AttributeTok{Model =} \StringTok{"Linear Reg {-} All Predictor Variables"}\NormalTok{,}
+                                 \AttributeTok{RMSE =} \FunctionTok{round}\NormalTok{(rmse\_2, }\DecValTok{3}\NormalTok{)))}
+\NormalTok{rmse\_summary}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 2 x 2
+##   Model                                 RMSE
+##   <chr>                                <dbl>
+## 1 Linear Reg - Shell Weight             2.4 
+## 2 Linear Reg - All Predictor Variables  2.12
+\end{verbatim}
+
+This improves our RMSE quite a bit! Now let's see if we can refine the
+linear regression model further by adding interaction terms. Since the
+dataset has minimal features and we are relatively familiar with how
+each variable is related, we can incorporate interaction terms into our
+model by multiplying two or more predictor variables that may be
+correlated to capture their combined effects in the model. Interaction
+terms allow the model to account for situations where the relationship
+between one predictor variable and the response is related to the value
+of another predictor variable (e.g., ShellWeight and WholeWeight).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{train\_set\_intxns }\OtherTok{\textless{}{-}}\NormalTok{ train\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{mutate}\NormalTok{(}
+  \AttributeTok{physical\_measurements =}\NormalTok{ Height }\SpecialCharTok{*}\NormalTok{ Diameter }\SpecialCharTok{*}\NormalTok{ WholeWeight, }
+  \AttributeTok{internal\_features =}\NormalTok{ ShuckedWeight }\SpecialCharTok{*}\NormalTok{ VisceraWeight,}
+  \AttributeTok{shell\_features =}\NormalTok{ ShellWeight }\SpecialCharTok{*}\NormalTok{ Diameter)}
+
+\NormalTok{test\_set\_intxns }\OtherTok{\textless{}{-}}\NormalTok{ test\_set }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{mutate}\NormalTok{(}
+  \AttributeTok{physical\_measurements =}\NormalTok{ Height }\SpecialCharTok{*}\NormalTok{ Diameter }\SpecialCharTok{*}\NormalTok{ WholeWeight,}
+  \AttributeTok{internal\_features =}\NormalTok{ ShuckedWeight }\SpecialCharTok{*}\NormalTok{ VisceraWeight,}
+  \AttributeTok{shell\_features =}\NormalTok{ ShellWeight }\SpecialCharTok{*}\NormalTok{ Diameter)}
+
+\NormalTok{lm\_fit }\OtherTok{\textless{}{-}}\NormalTok{ train\_set\_intxns }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{lm}\NormalTok{(Age }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ .)}
+\NormalTok{pred }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(lm\_fit, test\_set\_intxns)}
+\NormalTok{rmse\_3 }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(test\_set\_intxns}\SpecialCharTok{$}\NormalTok{Age, pred)}
+
+\NormalTok{rmse\_summary }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(rmse\_summary, }\FunctionTok{tibble}\NormalTok{(}
+  \AttributeTok{Model =} \StringTok{"Linear Reg {-} All Predictor Variables + Interaction Terms"}\NormalTok{,}
+  \AttributeTok{RMSE =} \FunctionTok{round}\NormalTok{(rmse\_3, }\DecValTok{3}\NormalTok{)))}
+\NormalTok{rmse\_summary}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 3 x 2
+##   Model                                                     RMSE
+##   <chr>                                                    <dbl>
+## 1 Linear Reg - Shell Weight                                 2.4 
+## 2 Linear Reg - All Predictor Variables                      2.12
+## 3 Linear Reg - All Predictor Variables + Interaction Terms  2.06
+\end{verbatim}
+
+Nice! We got an even better RMSE, but this does not solve our
+multicollinearity issue (actually, adding in interaction terms may have
+exacerbated it since most of the variables are pretty correlated and
+combining them doesn't help with that). Let's see if we can address this
+and any overfitting that may be occuring with regularization techniques.
+
+\hypertarget{regularization-application}{%
+\subsubsection{Regularization
+Application}\label{regularization-application}}
+
+\hypertarget{data-preparation}{%
+\paragraph{Data Preparation}\label{data-preparation}}
+
+First, let's transform Sex to a numeric value so that all predictor
+variables are numeric:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{train\_set\_continuous }\OtherTok{\textless{}{-}}\NormalTok{ train\_set\_intxns }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{Sex\_Integer =} \FunctionTok{as.integer}\NormalTok{(train\_set}\SpecialCharTok{$}\NormalTok{Sex)) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\FunctionTok{c}\NormalTok{(Sex))}
+
+\NormalTok{test\_set\_continuous }\OtherTok{\textless{}{-}}\NormalTok{ test\_set\_intxns }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{Sex\_Integer =} \FunctionTok{as.integer}\NormalTok{(test\_set}\SpecialCharTok{$}\NormalTok{Sex)) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\FunctionTok{c}\NormalTok{(Sex))}
+\end{Highlighting}
+\end{Shaded}
+
+Since regularization methods are sensitive to the scale of the input
+features, let's (a) ensure our features are on a similar scale and (b)
+if not, use a feature scaling technique such as standardization.
+
+* Note that though the \texttt{glmnet} package that we are going to use
+to run regularized models standardizes data automatically, we will do
+this anyway for practice and educational purposes.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Initialize the scaled data frames}
+\NormalTok{train\_set\_scaled }\OtherTok{\textless{}{-}}\NormalTok{ train\_set\_continuous}
+\NormalTok{test\_set\_scaled }\OtherTok{\textless{}{-}}\NormalTok{ test\_set\_continuous}
+
+\CommentTok{\# Ensure features are on a similar scale:}
+\NormalTok{scale\_names\_train }\OtherTok{\textless{}{-}} \FunctionTok{colnames}\NormalTok{(train\_set\_continuous)[}\SpecialCharTok{!}\FunctionTok{colnames}\NormalTok{(train\_set\_continuous) }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"Age"}\NormalTok{)]}
+\NormalTok{scale\_names\_test }\OtherTok{\textless{}{-}} \FunctionTok{colnames}\NormalTok{(test\_set\_continuous)[}\SpecialCharTok{!}\FunctionTok{colnames}\NormalTok{(test\_set\_continuous) }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"Age"}\NormalTok{)]}
+
+\CommentTok{\# Check the means and standard deviations of the features}
+\NormalTok{feature\_summary }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Feature =}\NormalTok{ scale\_names\_train,}
+  \AttributeTok{Mean =} \FunctionTok{colMeans}\NormalTok{(train\_set\_continuous[, scale\_names\_train]),}
+  \AttributeTok{SD =} \FunctionTok{apply}\NormalTok{(train\_set\_continuous[, scale\_names\_train], }\DecValTok{2}\NormalTok{, sd)}
+\NormalTok{)}
+
+\NormalTok{feature\_summary}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                                     Feature       Mean         SD
+## LongestShell                   LongestShell 0.52521120 0.11993128
+## Diameter                           Diameter 0.40895297 0.09905777
+## Height                               Height 0.14001947 0.04235368
+## WholeWeight                     WholeWeight 0.83412433 0.49016970
+## ShuckedWeight                 ShuckedWeight 0.36150989 0.22171133
+## VisceraWeight                 VisceraWeight 0.18188212 0.10961135
+## ShellWeight                     ShellWeight 0.23957070 0.13892691
+## physical_measurements physical_measurements 0.06342414 0.05840722
+## internal_features         internal_features 0.08838225 0.09587406
+## shell_features               shell_features 0.11041915 0.08036662
+## Sex_Integer                     Sex_Integer 2.05452367 0.82551401
+\end{verbatim}
+
+It does not look like our features are on a similar scale, indicated by
+the wide range of means and standard deviations for each feature, so we
+can scale using the code below:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Implement feature scaling using the scale() function}
+\NormalTok{train\_set\_scaled[, scale\_names\_train] }\OtherTok{\textless{}{-}} \FunctionTok{scale}\NormalTok{(train\_set\_continuous[, scale\_names\_train])}
+\NormalTok{test\_set\_scaled[, scale\_names\_test] }\OtherTok{\textless{}{-}} \FunctionTok{scale}\NormalTok{(test\_set\_continuous[, scale\_names\_test])}
+
+\CommentTok{\# Now, check the means and standard deviations after scaling}
+\NormalTok{scaled\_feature\_summary }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Feature =}\NormalTok{ scale\_names\_train,}
+  \AttributeTok{Mean =} \FunctionTok{colMeans}\NormalTok{(train\_set\_scaled[, scale\_names\_train]),}
+  \AttributeTok{SD =} \FunctionTok{apply}\NormalTok{(train\_set\_scaled[, scale\_names\_train], }\DecValTok{2}\NormalTok{, sd)}
+\NormalTok{)}
+
+\NormalTok{scaled\_feature\_summary}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                                     Feature          Mean SD
+## LongestShell                   LongestShell -4.459850e-16  1
+## Diameter                           Diameter  1.995691e-16  1
+## Height                               Height  1.453705e-16  1
+## WholeWeight                     WholeWeight  1.006698e-16  1
+## ShuckedWeight                 ShuckedWeight  1.095698e-16  1
+## VisceraWeight                 VisceraWeight  6.999802e-17  1
+## ShellWeight                     ShellWeight -3.797839e-17  1
+## physical_measurements physical_measurements  4.854212e-17  1
+## internal_features         internal_features -3.827461e-17  1
+## shell_features               shell_features -7.299766e-17  1
+## Sex_Integer                     Sex_Integer -3.604566e-17  1
+\end{verbatim}
+
+The scaling process has centered the data (resulting in a mean close to
+zero) and standardized its spread (resulting in a standard deviation
+close to 1) for each feature. Scaling ensures that the regularization
+strength (the hyperparameter controlling the extent of regularization)
+applies uniformly across features, so now that this is done, we can
+proceed with regularization.
+
+\hypertarget{regularization---ridge-l2-regression}{%
+\paragraph{Regularization - Ridge (L2)
+Regression}\label{regularization---ridge-l2-regression}}
+
+Ridge (L2) regression works best when most variables in the model are
+useful, as it shrinks parameters but does not remove them. Note that the
+parameter that makes this Ridge (L2) Regression is the alpha parameter
+set at 0. Let's see how our ridge regression model performs:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Define predictor names so that Age is not included as a predictor during model fitting}
+
+\NormalTok{predictor\_names }\OtherTok{\textless{}{-}} \FunctionTok{colnames}\NormalTok{(train\_set\_scaled)[}\SpecialCharTok{!}\FunctionTok{colnames}\NormalTok{(train\_set\_scaled) }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"Age"}\NormalTok{)]}
+
+\CommentTok{\# Run regularized model and use to output predictions}
+
+\NormalTok{alpha0.fit }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(}\AttributeTok{x=} \FunctionTok{as.matrix}\NormalTok{(train\_set\_scaled[,predictor\_names]), }\AttributeTok{y=}\NormalTok{ train\_set\_scaled}\SpecialCharTok{$}\NormalTok{Age, }\AttributeTok{family=} \StringTok{"gaussian"}\NormalTok{, }
+          \AttributeTok{type.measure =} \StringTok{"mse"}\NormalTok{, }\AttributeTok{alpha =} \DecValTok{0}\NormalTok{, }\AttributeTok{nlambda =} \DecValTok{100}\NormalTok{)}
+
+\NormalTok{alpha0.predicted }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(alpha0.fit, }\AttributeTok{s =}\NormalTok{ alpha0.fit}\SpecialCharTok{$}\NormalTok{lambda.min, }\AttributeTok{newx =} \FunctionTok{as.matrix}\NormalTok{(test\_set\_scaled[,predictor\_names]))}
+
+\NormalTok{rmse\_4 }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(test\_set\_scaled}\SpecialCharTok{$}\NormalTok{Age, alpha0.predicted)}
+
+\NormalTok{rmse\_summary }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(rmse\_summary,}
+                          \FunctionTok{tibble}\NormalTok{(}\AttributeTok{Model =} \StringTok{"Linear Reg w Ridge (L2) Regression"}\NormalTok{,}
+                                 \AttributeTok{RMSE =} \FunctionTok{round}\NormalTok{(rmse\_4, }\DecValTok{3}\NormalTok{)))}
+\NormalTok{rmse\_summary}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 4 x 2
+##   Model                                                     RMSE
+##   <chr>                                                    <dbl>
+## 1 Linear Reg - Shell Weight                                 2.4 
+## 2 Linear Reg - All Predictor Variables                      2.12
+## 3 Linear Reg - All Predictor Variables + Interaction Terms  2.06
+## 4 Linear Reg w Ridge (L2) Regression                        2.17
+\end{verbatim}
+
+It looks like this didn't have quite the effect on RMSE that we were
+hoping for, but maybe that's because Lasso (L1) Regression is a better
+fit.
+
+\hypertarget{regularization---lasso-l1-regression}{%
+\paragraph{Regularization - Lasso (L1)
+Regression}\label{regularization---lasso-l1-regression}}
+
+Lasso (L1) Regression works best when there are some variables in the
+model that are useless or redundant (sounds like our multicollinearity
+issue!), as it shrinks these parameters completely to zero and therefore
+generates a simpler model. Note that the parameter that indicates Lasso
+(L1) Regression is the alpha parameter set at 1. Let's see how our lasso
+regression model performs:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Run regularized model and use to output predictions}
+
+\NormalTok{alpha1.fit }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(}\AttributeTok{x=} \FunctionTok{as.matrix}\NormalTok{(train\_set\_scaled[,predictor\_names]), }
+                        \AttributeTok{y=}\NormalTok{ train\_set\_scaled}\SpecialCharTok{$}\NormalTok{Age, }\AttributeTok{family=} \StringTok{"gaussian"}\NormalTok{, }
+                        \AttributeTok{type.measure =} \StringTok{"mse"}\NormalTok{, }\AttributeTok{alpha =} \DecValTok{1}\NormalTok{, }\AttributeTok{nlambda =} \DecValTok{100}\NormalTok{)}
+
+\NormalTok{alpha1.predicted }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(alpha1.fit, }\AttributeTok{s =}\NormalTok{ alpha1.fit}\SpecialCharTok{$}\NormalTok{lambda.min, }\AttributeTok{newx =} \FunctionTok{as.matrix}\NormalTok{(test\_set\_scaled[ , predictor\_names]))}
+
+\NormalTok{rmse\_5 }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(test\_set\_scaled}\SpecialCharTok{$}\NormalTok{Age, alpha1.predicted)}
+
+\NormalTok{rmse\_summary }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(rmse\_summary,}
+                          \FunctionTok{tibble}\NormalTok{(}\AttributeTok{Model =} \StringTok{"Linear Reg w Lasso (L1) Regression"}\NormalTok{,}
+                                 \AttributeTok{RMSE =} \FunctionTok{round}\NormalTok{(rmse\_5, }\DecValTok{3}\NormalTok{)))}
+\NormalTok{rmse\_summary}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 5 x 2
+##   Model                                                     RMSE
+##   <chr>                                                    <dbl>
+## 1 Linear Reg - Shell Weight                                 2.4 
+## 2 Linear Reg - All Predictor Variables                      2.12
+## 3 Linear Reg - All Predictor Variables + Interaction Terms  2.06
+## 4 Linear Reg w Ridge (L2) Regression                        2.17
+## 5 Linear Reg w Lasso (L1) Regression                        2.06
+\end{verbatim}
+
+The regularized model here seems to be an improvement, although it still
+doesn't quite beat out the RMSE from our linear regression model with
+interaction terms.
+
+Finally, let's try elastic net regression to see if this improves our
+RMSE.
+
+\hypertarget{regularization---elastic-net-regression}{%
+\paragraph{Regularization - Elastic Net
+Regression}\label{regularization---elastic-net-regression}}
+
+Elastic net regression combines the the two regularization penalties
+(alpha and lambda) and is also good at dealing with situations when
+there are correlations between parameters. Note that the parameter that
+indicates Lasso (L1) Regression is the alpha parameter set between 0 and
+1. We will use an alpha of 0.5 to get an idea of whether this method
+will be useful.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Run regularized model and use to output predictions}
+
+\NormalTok{alpha0.}\FloatTok{5.}\NormalTok{fit }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(}\AttributeTok{x=} \FunctionTok{as.matrix}\NormalTok{(train\_set\_scaled[ , predictor\_names]), }\AttributeTok{y=}\NormalTok{ train\_set\_scaled}\SpecialCharTok{$}\NormalTok{Age, }\AttributeTok{family=} \StringTok{"gaussian"}\NormalTok{, }
+                        \AttributeTok{type.measure =} \StringTok{"mse"}\NormalTok{, }\AttributeTok{alpha =} \FloatTok{0.5}\NormalTok{, }\AttributeTok{nlambda =} \DecValTok{100}\NormalTok{)}
+
+\NormalTok{alpha0.}\FloatTok{5.}\NormalTok{predicted }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(alpha0.}\FloatTok{5.}\NormalTok{fit, }\AttributeTok{s =}\NormalTok{ alpha0.}\FloatTok{5.}\NormalTok{fit}\SpecialCharTok{$}\NormalTok{lambda.min, }\AttributeTok{newx =} \FunctionTok{as.matrix}\NormalTok{(test\_set\_scaled[ , predictor\_names]))}
+
+\NormalTok{rmse\_6 }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(test\_set\_scaled}\SpecialCharTok{$}\NormalTok{Age, alpha0.}\FloatTok{5.}\NormalTok{predicted)}
+
+\NormalTok{rmse\_summary }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(rmse\_summary,}
+                          \FunctionTok{tibble}\NormalTok{(}\AttributeTok{Model =} \StringTok{"Elastic Net Regression"}\NormalTok{,}
+                                 \AttributeTok{RMSE =} \FunctionTok{round}\NormalTok{(rmse\_6, }\DecValTok{3}\NormalTok{)))}
+\NormalTok{rmse\_summary}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 2
+##   Model                                                     RMSE
+##   <chr>                                                    <dbl>
+## 1 Linear Reg - Shell Weight                                 2.4 
+## 2 Linear Reg - All Predictor Variables                      2.12
+## 3 Linear Reg - All Predictor Variables + Interaction Terms  2.06
+## 4 Linear Reg w Ridge (L2) Regression                        2.17
+## 5 Linear Reg w Lasso (L1) Regression                        2.06
+## 6 Elastic Net Regression                                    2.06
+\end{verbatim}
+
+It seems like the optimal combination of alpha and lambda may have yet
+to be found.
+
+\hypertarget{regularization---optimize-penalty-combination}{%
+\paragraph{Regularization - Optimize Penalty
+Combination}\label{regularization---optimize-penalty-combination}}
+
+In order to understand which combination of penalties is truly best, we
+need to try many different values for alpha by optimizing the elastic
+net regression. We can do so and then run a model using the optimal
+alpha value using the following code:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fit\_values }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{() }\CommentTok{\# initialize empty list of fit\_values}
+
+\CommentTok{\# for loop to generate models using different values of alpha}
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{0}\SpecialCharTok{:}\DecValTok{10}\NormalTok{) \{}
+\NormalTok{  fit\_name }\OtherTok{\textless{}{-}} \FunctionTok{paste0}\NormalTok{(}\StringTok{"alpha"}\NormalTok{, i}\SpecialCharTok{/}\DecValTok{10}\NormalTok{)}
+  
+\NormalTok{  fit\_values[[fit\_name]] }\OtherTok{\textless{}{-}}
+    \FunctionTok{cv.glmnet}\NormalTok{(}\AttributeTok{x =} \FunctionTok{as.matrix}\NormalTok{(train\_set\_continuous[ , predictor\_names]), }\AttributeTok{y=}\NormalTok{ train\_set\_continuous}\SpecialCharTok{$}\NormalTok{Age, }\AttributeTok{family=} \StringTok{"gaussian"}\NormalTok{, }
+              \AttributeTok{type.measure =} \StringTok{"mse"}\NormalTok{, }\AttributeTok{alpha =}\NormalTok{ i}\SpecialCharTok{/}\DecValTok{10}\NormalTok{, }\AttributeTok{nlambda =} \DecValTok{100}\NormalTok{)}
+\NormalTok{\}}
+
+\NormalTok{results }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{() }\CommentTok{\# initialize empty dataframe for results}
+
+\CommentTok{\# for loop to run models and showcase results}
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{0}\SpecialCharTok{:}\DecValTok{10}\NormalTok{) \{}
+\NormalTok{  fit\_name }\OtherTok{\textless{}{-}} \FunctionTok{paste0}\NormalTok{(}\StringTok{"alpha"}\NormalTok{, i}\SpecialCharTok{/}\DecValTok{10}\NormalTok{)}
+  
+\NormalTok{  predicted }\OtherTok{\textless{}{-}} 
+    \FunctionTok{predict}\NormalTok{(fit\_values[[fit\_name]], }
+            \AttributeTok{s =}\NormalTok{ fit\_values[[fit\_name]]}\SpecialCharTok{$}\NormalTok{lambda.min, }\AttributeTok{newx =} \FunctionTok{as.matrix}\NormalTok{(test\_set\_continuous[ , predictor\_names]))}
+  
+\NormalTok{  rmse }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(test\_set\_continuous}\SpecialCharTok{$}\NormalTok{Age, predicted)}
+  
+\NormalTok{  temp }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{alpha =}\NormalTok{ i}\SpecialCharTok{/}\DecValTok{10}\NormalTok{, }\AttributeTok{mse =}\NormalTok{ rmse, }\AttributeTok{fit\_name =}\NormalTok{ fit\_name)}
+\NormalTok{  results }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(results, temp)}
+\NormalTok{\}}
+
+\NormalTok{results}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    alpha      mse fit_name
+## 1    0.0 2.171615   alpha0
+## 2    0.1 2.061348 alpha0.1
+## 3    0.2 2.061860 alpha0.2
+## 4    0.3 2.062202 alpha0.3
+## 5    0.4 2.062729 alpha0.4
+## 6    0.5 2.062729 alpha0.5
+## 7    0.6 2.062844 alpha0.6
+## 8    0.7 2.062910 alpha0.7
+## 9    0.8 2.062947 alpha0.8
+## 10   0.9 2.062865 alpha0.9
+## 11   1.0 2.062894   alpha1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# rename colnames of results dataframe for clarity}
+\NormalTok{results }\OtherTok{\textless{}{-}}\NormalTok{ results }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{rename}\NormalTok{(}\AttributeTok{rmse =}\NormalTok{ mse, }\AttributeTok{alphas =}\NormalTok{ alpha)}
+
+\CommentTok{\# Print the best result:}
+\NormalTok{results}\SpecialCharTok{$}\NormalTok{alphas[}\FunctionTok{which.min}\NormalTok{(results}\SpecialCharTok{$}\NormalTok{rmse)] }\CommentTok{\# best alpha is 0.4}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Run elastic net regression model with alpha = 0.4}
+
+\NormalTok{alpha0.}\FloatTok{4.}\NormalTok{fit }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(}\AttributeTok{x=} \FunctionTok{as.matrix}\NormalTok{(train\_set\_scaled[ , predictor\_names]), }\AttributeTok{y=}\NormalTok{ train\_set\_scaled}\SpecialCharTok{$}\NormalTok{Age, }\AttributeTok{family=} \StringTok{"gaussian"}\NormalTok{, }
+                        \AttributeTok{type.measure =} \StringTok{"mse"}\NormalTok{, }\AttributeTok{alpha =} \FloatTok{0.4}\NormalTok{, }\AttributeTok{nlambda =} \DecValTok{100}\NormalTok{)}
+
+\NormalTok{alpha0.}\FloatTok{4.}\NormalTok{predicted }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(alpha0.}\FloatTok{4.}\NormalTok{fit, }\AttributeTok{s =}\NormalTok{ alpha0.}\FloatTok{4.}\NormalTok{fit}\SpecialCharTok{$}\NormalTok{lambda.min, }\AttributeTok{newx =} \FunctionTok{as.matrix}\NormalTok{(test\_set\_scaled[ , predictor\_names]))}
+
+\NormalTok{rmse\_7 }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(test\_set\_scaled}\SpecialCharTok{$}\NormalTok{Age, alpha0.}\FloatTok{4.}\NormalTok{predicted)}
+
+\NormalTok{rmse\_summary }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(rmse\_summary,}
+                          \FunctionTok{tibble}\NormalTok{(}\AttributeTok{Model =} \StringTok{"Elastic Net Regression {-} Best Alpha"}\NormalTok{,}
+                                 \AttributeTok{RMSE =} \FunctionTok{round}\NormalTok{(rmse\_7, }\DecValTok{3}\NormalTok{)))}
+\NormalTok{rmse\_summary}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 7 x 2
+##   Model                                                     RMSE
+##   <chr>                                                    <dbl>
+## 1 Linear Reg - Shell Weight                                 2.4 
+## 2 Linear Reg - All Predictor Variables                      2.12
+## 3 Linear Reg - All Predictor Variables + Interaction Terms  2.06
+## 4 Linear Reg w Ridge (L2) Regression                        2.17
+## 5 Linear Reg w Lasso (L1) Regression                        2.06
+## 6 Elastic Net Regression                                    2.06
+## 7 Elastic Net Regression - Best Alpha                       2.06
+\end{verbatim}
+
+It seems like an alpha value of 0.4 is best here. Even though the RMSE
+is the same as the RMSE we got when running the initial elastic net
+regression with alpha = 0.5, we will still add it to the table to show
+that we tested the optimized model.
+
+Overall, the elastic net regression seemed to improve our RMSE notably,
+although still not as much as the linear regression with interaction
+terms. Let's see if an ensemble method, which tends to be generally more
+advanced and robust to overfitting, can help improve our RMSE.
+
+\hypertarget{random-forest-model}{%
+\subsubsection{Random Forest Model}\label{random-forest-model}}
+
+\href{https://www.ibm.com/topics/random-forest}{According to IBM}, a
+random forest model is a machine learning algorithm that generates a
+combination, or ``forest,'' of decision trees, which act as a means to
+split the data to arrive at a final predicted result. While decision
+trees consider all the possible feature splits, random forests only
+select a subset of those features.
+
+Let's start by running a random forest model on our data with default
+parameters:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{rf\_model }\OtherTok{\textless{}{-}} \FunctionTok{randomForest}\NormalTok{(Age }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ train\_set\_intxns, }\AttributeTok{ntree =} \DecValTok{500}\NormalTok{)}
+\NormalTok{predictions }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(rf\_model, test\_set\_intxns)}
+\NormalTok{rmse\_8 }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(predictions, test\_set\_intxns}\SpecialCharTok{$}\NormalTok{Age)}
+
+\NormalTok{rmse\_summary }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(rmse\_summary,}
+                          \FunctionTok{tibble}\NormalTok{(}\AttributeTok{Model =} \StringTok{"Random Forest {-} Default Params"}\NormalTok{,}
+                                 \AttributeTok{RMSE =} \FunctionTok{round}\NormalTok{(rmse\_8, }\DecValTok{3}\NormalTok{)))}
+\NormalTok{rmse\_summary}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 8 x 2
+##   Model                                                     RMSE
+##   <chr>                                                    <dbl>
+## 1 Linear Reg - Shell Weight                                 2.4 
+## 2 Linear Reg - All Predictor Variables                      2.12
+## 3 Linear Reg - All Predictor Variables + Interaction Terms  2.06
+## 4 Linear Reg w Ridge (L2) Regression                        2.17
+## 5 Linear Reg w Lasso (L1) Regression                        2.06
+## 6 Elastic Net Regression                                    2.06
+## 7 Elastic Net Regression - Best Alpha                       2.06
+## 8 Random Forest - Default Params                            2.04
+\end{verbatim}
+
+This is our best result yet! Let's try running the same random forest
+model, but with incorporation of class weights (by assigning a higher
+weight to older age groups with a lower sample size) to address the
+issue of unbalanced data:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Assign class weights (higher weight for age groups 15 years and older)}
+\NormalTok{class\_weights }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(train\_set\_intxns}\SpecialCharTok{$}\NormalTok{Age }\SpecialCharTok{\textgreater{}=} \DecValTok{15}\NormalTok{, }\AttributeTok{yes =} \DecValTok{2}\NormalTok{, }\AttributeTok{no =} \DecValTok{1}\NormalTok{)}
+
+\CommentTok{\# Run the model with class weights}
+\NormalTok{rf\_model\_weights }\OtherTok{\textless{}{-}} \FunctionTok{randomForest}\NormalTok{(}
+  \AttributeTok{formula =}\NormalTok{ Age }\SpecialCharTok{\textasciitilde{}}\NormalTok{ .,}
+  \AttributeTok{data =}\NormalTok{ train\_set\_intxns,}
+  \AttributeTok{ntree =} \DecValTok{500}\NormalTok{,}
+  \AttributeTok{classwt =}\NormalTok{ class\_weights}
+\NormalTok{  )}
+
+\NormalTok{predictions }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(rf\_model\_weights, test\_set\_intxns)}
+\NormalTok{rmse\_rf\_wt }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(predictions, test\_set\_intxns}\SpecialCharTok{$}\NormalTok{Age)}
+\NormalTok{rmse\_rf\_wt}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 2.035915
+\end{verbatim}
+
+It doesn't seem like this improved our RMSE from the initial random
+forest model, so we will leave it out of the table to avoid clutter.
+
+Note that multiple values (from 2 through 10) were tried in place of the
+\texttt{yes\ =\ 2} argument in the code above, with no improvement in
+RMSE.
+
+Let's try tuning the model instead:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Specify the training control settings for cross{-}validation (with a 10{-}fold cross validation)}
+\NormalTok{ctrl }\OtherTok{\textless{}{-}} \FunctionTok{trainControl}\NormalTok{(}\AttributeTok{method =} \StringTok{"cv"}\NormalTok{, }\AttributeTok{number =} \DecValTok{10}\NormalTok{)}
+
+\CommentTok{\# We could use the tuneGrid argument of the train() function in the caret package to do this,}
+\CommentTok{\# but let\textquotesingle{}s try adjusting parameters using the randomForest() function instead }
+
+\NormalTok{param\_grid }\OtherTok{\textless{}{-}} \FunctionTok{expand.grid}\NormalTok{(}
+  \AttributeTok{mtry =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{6}\NormalTok{),}
+  \AttributeTok{nodesize =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{5}\NormalTok{),}
+  \AttributeTok{ntree =} \FunctionTok{c}\NormalTok{(}\DecValTok{100}\NormalTok{, }\DecValTok{300}\NormalTok{, }\DecValTok{500}\NormalTok{)}
+\NormalTok{)}
+
+\CommentTok{\# Create an empty list to store the models}
+\NormalTok{models }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+Let's continue with our model tuning process. Note that the following
+code may take around 5 minutes to run, depending on the capabilities of
+your computer.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Iterate over each combination of parameters }
+\CommentTok{\# }\AlertTok{WARNING}\CommentTok{: Note that this code will take around 5 minutes to run.}
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{nrow}\NormalTok{(param\_grid)) \{}
+\NormalTok{  params }\OtherTok{\textless{}{-}}\NormalTok{ param\_grid[i, ]}
+  
+  \CommentTok{\# Train the model with the current set of parameters}
+\NormalTok{  model }\OtherTok{\textless{}{-}} \FunctionTok{randomForest}\NormalTok{(}
+    \AttributeTok{x =}\NormalTok{ train\_set\_intxns[, }\FunctionTok{colnames}\NormalTok{(train\_set\_intxns) }\SpecialCharTok{!=} \StringTok{"Age"}\NormalTok{],}
+    \AttributeTok{y =}\NormalTok{ train\_set\_intxns}\SpecialCharTok{$}\NormalTok{Age,}
+    \AttributeTok{mtry =}\NormalTok{ params}\SpecialCharTok{$}\NormalTok{mtry,}
+    \AttributeTok{nodesize =}\NormalTok{ params}\SpecialCharTok{$}\NormalTok{nodesize,}
+    \AttributeTok{ntree =}\NormalTok{ params}\SpecialCharTok{$}\NormalTok{ntree}
+\NormalTok{  )}
+  
+  \CommentTok{\# Store the trained model}
+\NormalTok{  models[[}\FunctionTok{paste}\NormalTok{(params}\SpecialCharTok{$}\NormalTok{mtry, params}\SpecialCharTok{$}\NormalTok{nodesize, params}\SpecialCharTok{$}\NormalTok{ntree, }\AttributeTok{sep =} \StringTok{"\_"}\NormalTok{)]] }\OtherTok{\textless{}{-}}\NormalTok{ model}
+\NormalTok{\}}
+
+\FunctionTok{names}\NormalTok{(models)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] "2_1_100" "4_1_100" "6_1_100" "2_3_100" "4_3_100" "6_3_100" "2_5_100"
+##  [8] "4_5_100" "6_5_100" "2_1_300" "4_1_300" "6_1_300" "2_3_300" "4_3_300"
+## [15] "6_3_300" "2_5_300" "4_5_300" "6_5_300" "2_1_500" "4_1_500" "6_1_500"
+## [22] "2_3_500" "4_3_500" "6_3_500" "2_5_500" "4_5_500" "6_5_500"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Create an empty vector to store the RMSE values}
+\NormalTok{rmse\_values }\OtherTok{\textless{}{-}} \FunctionTok{numeric}\NormalTok{(}\FunctionTok{length}\NormalTok{(models))}
+
+\CommentTok{\# Evaluate each model on the test set}
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \FunctionTok{seq\_along}\NormalTok{(models)) \{}
+\NormalTok{  model }\OtherTok{\textless{}{-}}\NormalTok{ models[[i]]}
+  
+  \CommentTok{\# Make predictions on the test set}
+\NormalTok{  predictions }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(model, }\AttributeTok{newdata =}\NormalTok{ test\_set\_intxns[, }\FunctionTok{colnames}\NormalTok{(test\_set\_intxns) }\SpecialCharTok{!=} \StringTok{"Age"}\NormalTok{])}
+  
+  \CommentTok{\# Calculate RMSE}
+\NormalTok{  rmse\_values[i] }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(predictions, test\_set\_intxns}\SpecialCharTok{$}\NormalTok{Age)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Now, let's find the best values and run our model again:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Find the index of the model with the lowest RMSE}
+\NormalTok{best\_model\_index }\OtherTok{\textless{}{-}} \FunctionTok{which.min}\NormalTok{(rmse\_values)}
+
+\CommentTok{\# Access the best model}
+\NormalTok{best\_model }\OtherTok{\textless{}{-}}\NormalTok{ models[[best\_model\_index]]}
+\FunctionTok{names}\NormalTok{(models[best\_model\_index])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "2_5_100"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# looks like the best parameters are mtry = 2, nodesize = 5, and ntree = 500}
+
+\CommentTok{\# Print the RMSE values}
+\NormalTok{rmse\_9 }\OtherTok{\textless{}{-}}\NormalTok{ rmse\_values[best\_model\_index]}
+\NormalTok{rmse\_9}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 2.026884
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{rmse\_summary }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(rmse\_summary,}
+                          \FunctionTok{tibble}\NormalTok{(}\AttributeTok{Model =} \StringTok{"Random Forest {-} Tuned Params"}\NormalTok{,}
+                                 \AttributeTok{RMSE =}\NormalTok{ rmse\_9))}
+\NormalTok{rmse\_summary}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 9 x 2
+##   Model                                                     RMSE
+##   <chr>                                                    <dbl>
+## 1 Linear Reg - Shell Weight                                 2.4 
+## 2 Linear Reg - All Predictor Variables                      2.12
+## 3 Linear Reg - All Predictor Variables + Interaction Terms  2.06
+## 4 Linear Reg w Ridge (L2) Regression                        2.17
+## 5 Linear Reg w Lasso (L1) Regression                        2.06
+## 6 Elastic Net Regression                                    2.06
+## 7 Elastic Net Regression - Best Alpha                       2.06
+## 8 Random Forest - Default Params                            2.04
+## 9 Random Forest - Tuned Params                              2.03
+\end{verbatim}
+
+It looks like using tuned parameters provided a slight improvement to
+our model. Let's try another ensemble method for comparison purposes.
+
+\hypertarget{gradient-boosting}{%
+\subsubsection{Gradient Boosting}\label{gradient-boosting}}
+
+\href{https://docs.aws.amazon.com/sagemaker/latest/dg/xgboost-HowItWorks.html}{According
+to Amazon Web Services documentation}, gradient boosting trees attempt
+to predict a target variable by combining estimates of a set of simpler
+models. Although gradient boosted models can be prone to overfitting,
+they have been known to perform better than random forests in some cases
+due to the fact that they combine results along the way and iterate upon
+results throughout the selection process, as opposed to combining
+results at the end of the process as a random forest algorithm would.
+
+Let's attempt to use a gradient boosted model with the \texttt{xgboost}
+package.
+
+First, we need to do a bit of pre-processing to get the data into a
+format that is expected by \texttt{xgboost}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Separate out x and y variables}
+
+\NormalTok{x\_train }\OtherTok{\textless{}{-}} \FunctionTok{subset}\NormalTok{(train\_set\_continuous, }\AttributeTok{select =} \SpecialCharTok{{-}}\FunctionTok{c}\NormalTok{(Age))}
+\NormalTok{y\_train }\OtherTok{\textless{}{-}}\NormalTok{ train\_set\_continuous}\SpecialCharTok{$}\NormalTok{Age}
+\NormalTok{x\_test }\OtherTok{\textless{}{-}} \FunctionTok{subset}\NormalTok{(test\_set\_continuous, }\AttributeTok{select =} \SpecialCharTok{{-}}\FunctionTok{c}\NormalTok{(Age))}
+\NormalTok{y\_test }\OtherTok{\textless{}{-}}\NormalTok{ test\_set\_continuous}\SpecialCharTok{$}\NormalTok{Age}
+
+\CommentTok{\# Convert data to the format expected by xgboost}
+\NormalTok{dtrain }\OtherTok{\textless{}{-}} \FunctionTok{xgb.DMatrix}\NormalTok{(}\AttributeTok{data =} \FunctionTok{as.matrix}\NormalTok{(x\_train), }\AttributeTok{label =}\NormalTok{ y\_train)}
+\NormalTok{dtest }\OtherTok{\textless{}{-}} \FunctionTok{xgb.DMatrix}\NormalTok{(}\AttributeTok{data =} \FunctionTok{as.matrix}\NormalTok{(x\_test), }\AttributeTok{label =}\NormalTok{ y\_test)}
+\end{Highlighting}
+\end{Shaded}
+
+Now, let's set some standard hyperparameters and run the boosted model:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Set hyperparameters (we may need to tune these)}
+\NormalTok{params }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(}
+  \AttributeTok{objective =} \StringTok{"reg:squarederror"}\NormalTok{,  }\CommentTok{\# Regression task}
+  \AttributeTok{eval\_metric =} \StringTok{"rmse"}\NormalTok{,            }\CommentTok{\# Evaluation metric (Root Mean Squared Error)}
+  \AttributeTok{max\_depth =} \DecValTok{2}\NormalTok{,                 }\CommentTok{\# Maximum depth of a tree}
+  \AttributeTok{eta =} \FloatTok{0.1}\NormalTok{,               }\CommentTok{\# Learning rate}
+  \AttributeTok{nrounds =} \DecValTok{400}     \CommentTok{\# Number of boosting rounds}
+\NormalTok{)}
+
+\CommentTok{\# Train the xgboost model}
+\NormalTok{xgb\_model }\OtherTok{\textless{}{-}} \FunctionTok{xgboost}\NormalTok{(}\AttributeTok{data =}\NormalTok{ dtrain, }\AttributeTok{params =}\NormalTok{ params, }\AttributeTok{nrounds =} \DecValTok{100}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [09:11:13] WARNING: src/learner.cc:767: 
+## Parameters: { "nrounds" } are not used.
+## 
+## [1]  train-rmse:10.350786 
+## [2]  train-rmse:9.383992 
+## [3]  train-rmse:8.519721 
+## [4]  train-rmse:7.748605 
+## [5]  train-rmse:7.059475 
+## [6]  train-rmse:6.447664 
+## [7]  train-rmse:5.905184 
+## [8]  train-rmse:5.423504 
+## [9]  train-rmse:4.998685 
+## [10] train-rmse:4.622758 
+## [11] train-rmse:4.293458 
+## [12] train-rmse:4.006589 
+## [13] train-rmse:3.754900 
+## [14] train-rmse:3.537011 
+## [15] train-rmse:3.349443 
+## [16] train-rmse:3.188586 
+## [17] train-rmse:3.049491 
+## [18] train-rmse:2.932306 
+## [19] train-rmse:2.831326 
+## [20] train-rmse:2.747182 
+## [21] train-rmse:2.674444 
+## [22] train-rmse:2.615269 
+## [23] train-rmse:2.565044 
+## [24] train-rmse:2.520583 
+## [25] train-rmse:2.486170 
+## [26] train-rmse:2.456851 
+## [27] train-rmse:2.430185 
+## [28] train-rmse:2.404959 
+## [29] train-rmse:2.387562 
+## [30] train-rmse:2.372900 
+## [31] train-rmse:2.353281 
+## [32] train-rmse:2.336760 
+## [33] train-rmse:2.325060 
+## [34] train-rmse:2.313444 
+## [35] train-rmse:2.299671 
+## [36] train-rmse:2.293200 
+## [37] train-rmse:2.286799 
+## [38] train-rmse:2.277265 
+## [39] train-rmse:2.272616 
+## [40] train-rmse:2.265476 
+## [41] train-rmse:2.255701 
+## [42] train-rmse:2.252419 
+## [43] train-rmse:2.245623 
+## [44] train-rmse:2.242596 
+## [45] train-rmse:2.238161 
+## [46] train-rmse:2.231346 
+## [47] train-rmse:2.227226 
+## [48] train-rmse:2.224825 
+## [49] train-rmse:2.217675 
+## [50] train-rmse:2.212466 
+## [51] train-rmse:2.210721 
+## [52] train-rmse:2.205878 
+## [53] train-rmse:2.201025 
+## [54] train-rmse:2.199086 
+## [55] train-rmse:2.195317 
+## [56] train-rmse:2.190158 
+## [57] train-rmse:2.185106 
+## [58] train-rmse:2.182368 
+## [59] train-rmse:2.181071 
+## [60] train-rmse:2.177423 
+## [61] train-rmse:2.176131 
+## [62] train-rmse:2.172269 
+## [63] train-rmse:2.168171 
+## [64] train-rmse:2.162905 
+## [65] train-rmse:2.161383 
+## [66] train-rmse:2.159236 
+## [67] train-rmse:2.156410 
+## [68] train-rmse:2.152131 
+## [69] train-rmse:2.149443 
+## [70] train-rmse:2.148498 
+## [71] train-rmse:2.146353 
+## [72] train-rmse:2.143242 
+## [73] train-rmse:2.141752 
+## [74] train-rmse:2.137971 
+## [75] train-rmse:2.136961 
+## [76] train-rmse:2.134868 
+## [77] train-rmse:2.133328 
+## [78] train-rmse:2.131047 
+## [79] train-rmse:2.128061 
+## [80] train-rmse:2.127227 
+## [81] train-rmse:2.126399 
+## [82] train-rmse:2.124638 
+## [83] train-rmse:2.122096 
+## [84] train-rmse:2.119564 
+## [85] train-rmse:2.118588 
+## [86] train-rmse:2.117929 
+## [87] train-rmse:2.115806 
+## [88] train-rmse:2.112749 
+## [89] train-rmse:2.112061 
+## [90] train-rmse:2.107018 
+## [91] train-rmse:2.105560 
+## [92] train-rmse:2.103963 
+## [93] train-rmse:2.101254 
+## [94] train-rmse:2.099965 
+## [95] train-rmse:2.097760 
+## [96] train-rmse:2.097208 
+## [97] train-rmse:2.094832 
+## [98] train-rmse:2.093045 
+## [99] train-rmse:2.092483 
+## [100]    train-rmse:2.090536
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Make predictions on the training set (you can use a separate test set for predictions)}
+\NormalTok{predictions }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(xgb\_model, }\FunctionTok{as.matrix}\NormalTok{(x\_test))}
+\NormalTok{rmse\_10 }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(predictions, y\_test)}
+
+\NormalTok{rmse\_summary }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(rmse\_summary,}
+                          \FunctionTok{tibble}\NormalTok{(}\AttributeTok{Model =} \StringTok{"Gradient Boosted Model {-} Standard Params"}\NormalTok{,}
+                                 \AttributeTok{RMSE =} \FunctionTok{round}\NormalTok{(rmse\_10, }\DecValTok{3}\NormalTok{)))}
+\NormalTok{rmse\_summary}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 10 x 2
+##    Model                                                     RMSE
+##    <chr>                                                    <dbl>
+##  1 Linear Reg - Shell Weight                                 2.4 
+##  2 Linear Reg - All Predictor Variables                      2.12
+##  3 Linear Reg - All Predictor Variables + Interaction Terms  2.06
+##  4 Linear Reg w Ridge (L2) Regression                        2.17
+##  5 Linear Reg w Lasso (L1) Regression                        2.06
+##  6 Elastic Net Regression                                    2.06
+##  7 Elastic Net Regression - Best Alpha                       2.06
+##  8 Random Forest - Default Params                            2.04
+##  9 Random Forest - Tuned Params                              2.03
+## 10 Gradient Boosted Model - Standard Params                  2.08
+\end{verbatim}
+
+This isn't looking quite as good as the random forest model, but let's
+try tuning parameters anyway:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Define hyperparameter grid}
+\NormalTok{param\_grid }\OtherTok{\textless{}{-}} \FunctionTok{expand.grid}\NormalTok{(}
+  \AttributeTok{eta =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.01}\NormalTok{, }\FloatTok{0.1}\NormalTok{, }\FloatTok{0.3}\NormalTok{),}
+  \AttributeTok{max\_depth =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{6}\NormalTok{, }\DecValTok{9}\NormalTok{),}
+  \AttributeTok{gamma =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\FloatTok{0.1}\NormalTok{, }\FloatTok{0.2}\NormalTok{),}
+  \AttributeTok{subsample =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.8}\NormalTok{, }\FloatTok{1.0}\NormalTok{),}
+  \AttributeTok{colsample\_bytree =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.8}\NormalTok{, }\FloatTok{1.0}\NormalTok{),}
+  \AttributeTok{min\_child\_weight =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{5}\NormalTok{)}
+\NormalTok{)}
+
+\CommentTok{\# Function to train and evaluate model for a given set of hyperparameters}
+
+\NormalTok{train\_and\_evaluate }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(params, train\_data, test\_data) \{}
+  \CommentTok{\# Convert non{-}numeric columns to numeric using one{-}hot encoding}
+\NormalTok{  train\_data\_matrix }\OtherTok{\textless{}{-}} \FunctionTok{model.matrix}\NormalTok{(}\SpecialCharTok{\textasciitilde{}}\NormalTok{ . }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ train\_data)}
+\NormalTok{  test\_data\_matrix }\OtherTok{\textless{}{-}} \FunctionTok{model.matrix}\NormalTok{(}\SpecialCharTok{\textasciitilde{}}\NormalTok{ . }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ test\_data)}
+  
+  \CommentTok{\# Create DMatrix for training and testing data}
+\NormalTok{  dtrain }\OtherTok{\textless{}{-}} \FunctionTok{xgb.DMatrix}\NormalTok{(}\AttributeTok{data =}\NormalTok{ train\_data\_matrix, }\AttributeTok{label =}\NormalTok{ train\_data}\SpecialCharTok{$}\NormalTok{Age)}
+\NormalTok{  dtest }\OtherTok{\textless{}{-}} \FunctionTok{xgb.DMatrix}\NormalTok{(}\AttributeTok{data =}\NormalTok{ test\_data\_matrix, }\AttributeTok{label =}\NormalTok{ test\_data}\SpecialCharTok{$}\NormalTok{Age, }\AttributeTok{missing =} \ConstantTok{NA}\NormalTok{, }\AttributeTok{nthread =} \DecValTok{1}\NormalTok{)}
+  
+  \CommentTok{\# Train the model}
+\NormalTok{  xgb\_model }\OtherTok{\textless{}{-}} \FunctionTok{xgboost}\NormalTok{(}\AttributeTok{params =}\NormalTok{ params, }\AttributeTok{data =}\NormalTok{ dtrain, }\AttributeTok{nrounds =} \DecValTok{100}\NormalTok{, }\AttributeTok{verbose =} \DecValTok{0}\NormalTok{)}
+  
+  \CommentTok{\# Make predictions on the test set}
+\NormalTok{  predictions }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(xgb\_model, }\AttributeTok{newdata =}\NormalTok{ dtest)}
+  
+  \CommentTok{\# Evaluate the model}
+\NormalTok{  rmse }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((predictions }\SpecialCharTok{{-}}\NormalTok{ test\_data}\SpecialCharTok{$}\NormalTok{Age)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+  
+  \FunctionTok{return}\NormalTok{(}\FunctionTok{data.frame}\NormalTok{(params, rmse))}
+\NormalTok{\}}
+
+\CommentTok{\# Apply the function to all combinations of hyperparameters}
+\CommentTok{\# }\AlertTok{WARNING}\CommentTok{: This portion of the code may take 1{-}5 mins to run }
+\CommentTok{\# depending on your machine capabilities}
+\NormalTok{results }\OtherTok{\textless{}{-}} \FunctionTok{apply}\NormalTok{(param\_grid, }\DecValTok{1}\NormalTok{, }\ControlFlowTok{function}\NormalTok{(row) \{}
+\NormalTok{  params }\OtherTok{\textless{}{-}} \FunctionTok{as.list}\NormalTok{(row)}
+\NormalTok{  train\_data }\OtherTok{\textless{}{-}}\NormalTok{ train\_set\_continuous}
+\NormalTok{  test\_data }\OtherTok{\textless{}{-}}\NormalTok{ test\_set\_continuous}
+  \FunctionTok{train\_and\_evaluate}\NormalTok{(params, train\_data, test\_data)}
+\NormalTok{\})}
+
+
+\CommentTok{\# Combine results into a data frame}
+\NormalTok{results\_df }\OtherTok{\textless{}{-}} \FunctionTok{do.call}\NormalTok{(rbind, results)}
+\end{Highlighting}
+\end{Shaded}
+
+Now, let's use the best parameter selection and run another model:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Find the best hyperparameters}
+\NormalTok{best\_params }\OtherTok{\textless{}{-}}\NormalTok{ results\_df[}\FunctionTok{which.min}\NormalTok{(results\_df}\SpecialCharTok{$}\NormalTok{rmse), ]}
+\FunctionTok{print}\NormalTok{(best\_params)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##     eta max_depth gamma subsample colsample_bytree min_child_weight       rmse
+## 275 0.1         6     0       0.8                1                5 0.02739996
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Let\textquotesingle{}s try running our model again with these "best" parameters}
+\NormalTok{params }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(}
+  \AttributeTok{objective =} \StringTok{"reg:squarederror"}\NormalTok{,  }\CommentTok{\# Regression task}
+  \AttributeTok{eval\_metric =} \StringTok{"rmse"}\NormalTok{,            }\CommentTok{\# Evaluation metric (Root Mean Squared Error)}
+  \AttributeTok{max\_depth =} \DecValTok{3}\NormalTok{,                 }\CommentTok{\# Maximum depth of a tree}
+  \AttributeTok{eta =} \FloatTok{0.1}\NormalTok{,     }
+  \AttributeTok{gamma =} \DecValTok{0}\NormalTok{,}
+  \AttributeTok{subsample =} \FloatTok{0.8}\NormalTok{,}
+  \AttributeTok{colsample\_bytree =} \DecValTok{1}\NormalTok{,}
+  \AttributeTok{min\_child\_weight =} \DecValTok{1}
+\NormalTok{)}
+
+\NormalTok{xgb\_model }\OtherTok{\textless{}{-}} \FunctionTok{xgboost}\NormalTok{(}\AttributeTok{data =}\NormalTok{ dtrain, }\AttributeTok{params =}\NormalTok{ params, }\AttributeTok{nrounds =} \DecValTok{100}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1]  train-rmse:10.344024 
+## [2]  train-rmse:9.372717 
+## [3]  train-rmse:8.504990 
+## [4]  train-rmse:7.725426 
+## [5]  train-rmse:7.030474 
+## [6]  train-rmse:6.413966 
+## [7]  train-rmse:5.860822 
+## [8]  train-rmse:5.371029 
+## [9]  train-rmse:4.936015 
+## [10] train-rmse:4.553099 
+## [11] train-rmse:4.217186 
+## [12] train-rmse:3.920132 
+## [13] train-rmse:3.664126 
+## [14] train-rmse:3.443510 
+## [15] train-rmse:3.252543 
+## [16] train-rmse:3.083449 
+## [17] train-rmse:2.937525 
+## [18] train-rmse:2.812477 
+## [19] train-rmse:2.704692 
+## [20] train-rmse:2.613389 
+## [21] train-rmse:2.536005 
+## [22] train-rmse:2.469200 
+## [23] train-rmse:2.413274 
+## [24] train-rmse:2.368845 
+## [25] train-rmse:2.329492 
+## [26] train-rmse:2.292264 
+## [27] train-rmse:2.262583 
+## [28] train-rmse:2.237499 
+## [29] train-rmse:2.214080 
+## [30] train-rmse:2.196983 
+## [31] train-rmse:2.181083 
+## [32] train-rmse:2.165218 
+## [33] train-rmse:2.150994 
+## [34] train-rmse:2.138645 
+## [35] train-rmse:2.128008 
+## [36] train-rmse:2.120572 
+## [37] train-rmse:2.112462 
+## [38] train-rmse:2.104686 
+## [39] train-rmse:2.098263 
+## [40] train-rmse:2.093470 
+## [41] train-rmse:2.091004 
+## [42] train-rmse:2.085045 
+## [43] train-rmse:2.081516 
+## [44] train-rmse:2.076096 
+## [45] train-rmse:2.073425 
+## [46] train-rmse:2.068119 
+## [47] train-rmse:2.063194 
+## [48] train-rmse:2.058832 
+## [49] train-rmse:2.054371 
+## [50] train-rmse:2.052253 
+## [51] train-rmse:2.048445 
+## [52] train-rmse:2.047259 
+## [53] train-rmse:2.043429 
+## [54] train-rmse:2.040015 
+## [55] train-rmse:2.033654 
+## [56] train-rmse:2.031453 
+## [57] train-rmse:2.027265 
+## [58] train-rmse:2.023728 
+## [59] train-rmse:2.019572 
+## [60] train-rmse:2.015710 
+## [61] train-rmse:2.011170 
+## [62] train-rmse:2.007392 
+## [63] train-rmse:2.003972 
+## [64] train-rmse:1.999388 
+## [65] train-rmse:1.997475 
+## [66] train-rmse:1.993854 
+## [67] train-rmse:1.988111 
+## [68] train-rmse:1.984695 
+## [69] train-rmse:1.982568 
+## [70] train-rmse:1.979570 
+## [71] train-rmse:1.978852 
+## [72] train-rmse:1.975535 
+## [73] train-rmse:1.971920 
+## [74] train-rmse:1.970679 
+## [75] train-rmse:1.969916 
+## [76] train-rmse:1.968141 
+## [77] train-rmse:1.966703 
+## [78] train-rmse:1.966153 
+## [79] train-rmse:1.963569 
+## [80] train-rmse:1.960514 
+## [81] train-rmse:1.957587 
+## [82] train-rmse:1.956661 
+## [83] train-rmse:1.955130 
+## [84] train-rmse:1.953019 
+## [85] train-rmse:1.950258 
+## [86] train-rmse:1.947761 
+## [87] train-rmse:1.944704 
+## [88] train-rmse:1.941611 
+## [89] train-rmse:1.938361 
+## [90] train-rmse:1.934661 
+## [91] train-rmse:1.932251 
+## [92] train-rmse:1.930488 
+## [93] train-rmse:1.928848 
+## [94] train-rmse:1.926655 
+## [95] train-rmse:1.923426 
+## [96] train-rmse:1.920168 
+## [97] train-rmse:1.917385 
+## [98] train-rmse:1.914795 
+## [99] train-rmse:1.912192 
+## [100]    train-rmse:1.909495
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{predictions }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(xgb\_model, }\FunctionTok{as.matrix}\NormalTok{(x\_test))}
+\NormalTok{rmse\_11 }\OtherTok{\textless{}{-}} \FunctionTok{RMSE}\NormalTok{(predictions, y\_test)}
+\NormalTok{rmse\_11}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 2.070017
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{rmse\_summary }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(rmse\_summary,}
+                          \FunctionTok{tibble}\NormalTok{(}\AttributeTok{Model =} \StringTok{"Gradient Boosted Model {-} Tuned Params"}\NormalTok{,}
+                                 \AttributeTok{RMSE =}\NormalTok{ rmse\_11))}
+\NormalTok{rmse\_summary}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 11 x 2
+##    Model                                                     RMSE
+##    <chr>                                                    <dbl>
+##  1 Linear Reg - Shell Weight                                 2.4 
+##  2 Linear Reg - All Predictor Variables                      2.12
+##  3 Linear Reg - All Predictor Variables + Interaction Terms  2.06
+##  4 Linear Reg w Ridge (L2) Regression                        2.17
+##  5 Linear Reg w Lasso (L1) Regression                        2.06
+##  6 Elastic Net Regression                                    2.06
+##  7 Elastic Net Regression - Best Alpha                       2.06
+##  8 Random Forest - Default Params                            2.04
+##  9 Random Forest - Tuned Params                              2.03
+## 10 Gradient Boosted Model - Standard Params                  2.08
+## 11 Gradient Boosted Model - Tuned Params                     2.07
+\end{verbatim}
+
+The tuned boosted model did improve RMSE slightly over the initial
+boosted model; however, it may have been too granular since the random
+forest models performed better overall.
+
+\hypertarget{summary}{%
+\subsection{Summary}\label{summary}}
+
+Within the scope of this project, our tuned random forest model is the
+winner!
+
+Let's take a look at a sorted version of our RMSE Summary table:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{rmse\_summary\_sorted }\OtherTok{\textless{}{-}}\NormalTok{ rmse\_summary }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{arrange}\NormalTok{(RMSE)}
+
+\NormalTok{rmse\_summary\_sorted}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 11 x 2
+##    Model                                                     RMSE
+##    <chr>                                                    <dbl>
+##  1 Random Forest - Tuned Params                              2.03
+##  2 Random Forest - Default Params                            2.04
+##  3 Linear Reg w Lasso (L1) Regression                        2.06
+##  4 Elastic Net Regression                                    2.06
+##  5 Elastic Net Regression - Best Alpha                       2.06
+##  6 Linear Reg - All Predictor Variables + Interaction Terms  2.06
+##  7 Gradient Boosted Model - Tuned Params                     2.07
+##  8 Gradient Boosted Model - Standard Params                  2.08
+##  9 Linear Reg - All Predictor Variables                      2.12
+## 10 Linear Reg w Ridge (L2) Regression                        2.17
+## 11 Linear Reg - Shell Weight                                 2.4
+\end{verbatim}
+
+We can likely assume that the random forest model was the best fit for
+our data due to plenty of factors; however, overall, the abalone dataset
+is a relatively simple one with only nine features (including the target
+variable), and may have been generalized better with a random forest
+model or linear regression (with all variables and adjusted inputs) over
+a more complex boosted model. In addition, most of the data in the
+abalone dataset seemed to have linear relationships, giving random
+forest and linear regression the edge over a gradient boosted model.
+Obviously, the simple linear regression model was too simple (likely
+underfit the data). Since we had issues with multicollinearity in the
+dataset and therefore, some of the variables were redundant and not
+contributing much to the predictive power, elastic net's ability to
+perform variable selection may have been advantageous over ridge
+regression's approach to simply shrinking all variable coefficients.
+
+\hypertarget{reflections-and-opportunities-for-improvement}{%
+\subsection{Reflections and Opportunities for
+Improvement}\label{reflections-and-opportunities-for-improvement}}
+
+I went about this problem assuming Age was a continuous variable.
+However, since the age range of abalones in the dataset is 2.5 - 30.5,
+incremented by 0.5 for each age group, this could have easily been a
+classification problem and machine learning models could have been
+tailored to a classified result. For example, using cluster methods such
+as kNN would have been a good application to assigning an age
+``category'' to an abalone using the other eight features in the dataset
+as predictors. If I had used this approach, I would have been able to
+run confusion matrices, which may have also provided better metrics of
+how my model was performing than just using RMSE as an indicator.
+
+I was tentative to remove more observations from the dataset after
+cleaning since it already only had around 4,000 observations and 9
+features, but another opportunity for improvement could have been better
+identification and adjustment of outliers in the dataset, especially
+since linear relationships were observed throughout. Removing outliers
+could have helped to reduce issues associated with noise (such as
+overfitting) and improve predictive power of my models.
+
+Overall, the abalone data sample size was likely the the biggest
+bottleneck to achieving better machine learning models and results. More
+than anything, I think my algorithms and any future algorithms run on
+this dataset would benefit highly from more observations to predict
+from. It would be interesting to look into whether there is a similar
+quality dataset (more recent than 1995) with greater observations and
+features of abalone traits.
+
+\end{document}

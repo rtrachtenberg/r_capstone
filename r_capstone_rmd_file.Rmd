@@ -1,25 +1,24 @@
 ---
 title: 'Capstone Project: Abalone Age Prediction'
 author: "Roxie Trachtenberg"
-date: "2023-12-04"
-output: html_document
+date: "2023-12-05"
+output:
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
-
-# Abalone Age Prediction
 
 ## Introduction
 
-The abalone dataset, downloaded from the AppliedPredictiveModeling R package (which can be accessed at this [link](https://github.com/cran/AppliedPredictiveModeling/tree/master/data)), contains 4,177 instances of physical and qualitative observations of this type of marine snail. The data originated from a 1995 study conducted by UC Irvine and contains the following data:
+The abalone dataset, downloaded from the `AppliedPredictiveModeling` R package (which can be accessed at this [link](https://github.com/cran/AppliedPredictiveModeling/tree/master/data)), contains 4,177 instances of physical and qualitative observations of this type of marine snail. The data originated from a 1995 study conducted by UC Irvine and contains the following data:
 
 | Variable Name | Variable Type | Units       | Description                                                     |
-|---------------|---------------|-------------|-----------------------------------------------------------------|
+|------------------|------------------|------------------|-------------------|
 | Sex           | Categorical   | NA          | Split into 3 categories: M (Male), F (Female), and I (Immature) |
 | LongestShell  | Continuous    | millimeters | Abalone length measured from ends of longest shell              |
-| Diameter      | Continuous    | millimeters | Abalone shell diameter E(perpendicular to longest shell length) |
+| Diameter      | Continuous    | millimeters | Abalone shell diameter (perpendicular to longest shell length)  |
 | Height        | Continuous    | millimeters | Abalone height, including meat within shell                     |
 | WholeWeight   | Continuous    | grams       | Whole abalone weight                                            |
 | ShuckedWeight | Continuous    | grams       | Weight of abalone flesh (not including exoskeleton or shell)    |
@@ -33,7 +32,7 @@ According to the researchers that piloted the 1995 study, the age of an abalone 
 
 First, we need to install packages and load libraries of those that are needed to complete the project and run all of the project code.
 
-```{r}
+```{r, results = 'hide', message = FALSE, warning = FALSE}
 # Install packages
 package_names <- c("AppliedPredictiveModeling", 
                    "ggplot2", "dplyr", "tidyverse", "caret",
@@ -48,6 +47,9 @@ for (lib in libraries_to_load) {
   library(lib, character.only = TRUE)
 }
 
+```
+
+```{r}
 # Load and examine abalone dataset
 data(abalone)
 dim(abalone)
@@ -125,7 +127,7 @@ gen_formatting <- theme(plot.title = element_text(face = "bold"),
 
 First, let's visualize the distribution of abalone weights in the full dataset:
 
-```{r}
+```{r, warning = FALSE}
 plot1 <- ggplot(abalone_clean, aes(x = WholeWeight)) + 
   geom_histogram(fill = "#FDBF6F", color = "#FF7F00", alpha = 0.7) +
   labs(title = "Distribution of Abalone Weight",
@@ -237,10 +239,9 @@ It looks like there is a normal distribution of grown males and females in each 
 
 Now that we have made observations about some key variables in our dataset, such as, age, sex, and weight, let's explore their associations with one another through a correlation plot:
 
-```{r}
+```{r, results = 'hide'}
 cor_table = abalone_clean %>% select(-Sex) %>% cor()
 corplot1 <- corrplot(cor_table, method = 'number', diag = FALSE) # colorful number
-corplot1
 ```
 
 This plot indicates that we will need to proceed cautiously regarding multicollinearity when running machine learning algorithms. However, features that are highly correlated with the age (e.g., ShellWeight, Diameter) might be good candidates for inclusion in our machine learning models over others. Viscera weight and whole weight, among other measurements like this, are highly correlated, so this may provide a good case for using interaction terms or dimensionality reduction prior to running machine learning models. Finally, it is important to note that higher correlations do not necessarily imply causation or better predictive power in a machine learning context.
@@ -315,7 +316,7 @@ rmse_summary
 This improves our RMSE quite a bit! Now let's see if we can refine the linear regression model further by adding interaction terms. Since the dataset has minimal features and we are relatively familiar with how each variable is related, we can incorporate interaction terms into our model by multiplying two or more predictor variables that may be correlated to capture their combined effects in the model. Interaction terms allow the model to account for situations where the relationship between one predictor variable and the response is related to the value of another predictor variable (e.g., ShellWeight and WholeWeight).
 
 ```{r}
-rain_set_intxns <- train_set %>% mutate(
+train_set_intxns <- train_set %>% mutate(
   physical_measurements = Height * Diameter * WholeWeight, 
   internal_features = ShuckedWeight * VisceraWeight,
   shell_features = ShellWeight * Diameter)
@@ -325,7 +326,7 @@ test_set_intxns <- test_set %>% mutate(
   internal_features = ShuckedWeight * VisceraWeight,
   shell_features = ShellWeight * Diameter)
 
-lm_fit <- train_set_int_terms %>% lm(Age ~ ., data = .)
+lm_fit <- train_set_intxns %>% lm(Age ~ ., data = .)
 pred <- predict(lm_fit, test_set_intxns)
 rmse_3 <- RMSE(test_set_intxns$Age, pred)
 
@@ -338,6 +339,7 @@ rmse_summary
 Nice! We got an even better RMSE, but this does not solve our multicollinearity issue (actually, adding in interaction terms may have exacerbated it since most of the variables are pretty correlated and combining them doesn't help with that). Let's see if we can address this and any overfitting that may be occuring with regularization techniques.
 
 ### Regularization Application
+
 
 #### Data Preparation
 
@@ -391,11 +393,12 @@ scaled_feature_summary <- data.frame(
 scaled_feature_summary
 ```
 
-The scaling process has centered the data (resulting in a mean close to zero) and standardized its spread (resulting in a standard deviation close to 1) for each feature. Scaling ensures that the regularization strength (the hyperparameter controlling the extent of regularization) applies uniformly across features, so now that this is done, we can proceed with regularization.
+The scaling process has centered the data (resulting in a mean close to zero) and standardized its spread (resulting in a standard deviation of 1) for each feature. Scaling ensures that the regularization strength (the hyperparameter controlling the extent of regularization) applies uniformly across features, so now that this is done, we can proceed with regularization.
+
 
 #### Regularization - Ridge (L2) Regression
 
-Ridge (L2) regression works best when most variables in the model are useful, as it shrinks parameters but does not remove them. Note that the parameter that makes this Ridge (L2) Regression is the alpha parameter set at 0. Let's see how our ridge regression model performs:
+Ridge (L2) regression works best when most variables in the model are useful, as it shrinks parameters but does not remove them. Note that the parameter that makes this a Ridge (L2) Regression is the alpha parameter set at 0. Let's see how our ridge regression model performs:
 
 ```{r}
 # Define predictor names so that Age is not included as a predictor during model fitting
@@ -418,6 +421,7 @@ rmse_summary
 ```
 
 It looks like this didn't have quite the effect on RMSE that we were hoping for, but maybe that's because Lasso (L1) Regression is a better fit.
+
 
 #### Regularization - Lasso (L1) Regression
 
@@ -444,6 +448,7 @@ The regularized model here seems to be an improvement, although it still doesn't
 
 Finally, let's try elastic net regression to see if this improves our RMSE.
 
+
 #### Regularization - Elastic Net Regression
 
 Elastic net regression combines the the two regularization penalties (alpha and lambda) and is also good at dealing with situations when there are correlations between parameters. Note that the parameter that indicates Lasso (L1) Regression is the alpha parameter set between 0 and 1. We will use an alpha of 0.5 to get an idea of whether this method will be useful.
@@ -465,6 +470,7 @@ rmse_summary
 ```
 
 It seems like the optimal combination of alpha and lambda may have yet to be found.
+
 
 #### Regularization - Optimize Penalty Combination
 
@@ -504,16 +510,15 @@ results
 results <- results %>% rename(rmse = mse, alphas = alpha)
 
 # Print the best result:
-results$alphas[which.min(results$rmse)] # best alpha is 0.4
+best_alpha <- results$alphas[which.min(results$rmse)] # store the best alpha in a variable
 
-# Run elastic net regression model with alpha = 0.4
+# Run elastic net regression model with the best alpha
 
-alpha0.4.fit <- cv.glmnet(x= as.matrix(train_set_scaled[ , predictor_names]), y= train_set_scaled$Age, family= "gaussian", 
-                        type.measure = "mse", alpha = 0.4, nlambda = 100)
+alpha.best.fit <- cv.glmnet(x= as.matrix(train_set_scaled[ , predictor_names]), y= train_set_scaled$Age, family= "gaussian", type.measure = "mse", alpha = best_alpha, nlambda = 100)
 
-alpha0.4.predicted <- predict(alpha0.4.fit, s = alpha0.4.fit$lambda.min, newx = as.matrix(test_set_scaled[ , predictor_names]))
+alpha.best.predicted <- predict(alpha.best.fit, s = alpha.best.fit$lambda.min, newx = as.matrix(test_set_scaled[ , predictor_names]))
 
-rmse_7 <- RMSE(test_set_scaled$Age, alpha0.4.predicted)
+rmse_7 <- RMSE(test_set_scaled$Age, alpha.best.predicted)
 
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Elastic Net Regression - Best Alpha",
@@ -522,7 +527,7 @@ rmse_summary
 
 ```
 
-It seems like an alpha value of 0.4 is best here. Even though the RMSE is the same as the RMSE we got when running the initial elastic net regression with alpha = 0.5, we will still add it to the table to show that we tested the optimized model.
+Even though the RMSE is similar to the RMSE we got when running the initial elastic net regression with alpha = 0.5, we will still add it to the table to show that we tested the optimized model.
 
 Overall, the elastic net regression seemed to improve our RMSE notably, although still not as much as the linear regression with interaction terms. Let's see if an ensemble method, which tends to be generally more advanced and robust to overfitting, can help improve our RMSE.
 
@@ -562,9 +567,9 @@ rmse_rf_wt <- RMSE(predictions, test_set_intxns$Age)
 rmse_rf_wt
 ```
 
-It doesn't seem like this improved our RMSE from the initial random forest model, so we will leave it out of the table to avoid clutter.
+It doesn't seem like this improved our RMSE from the initial random forest model, so we will leave it out of the table to avoid cluttering it up.
 
-Note that multiple values (from 2 through 10) were tried in place of the `yes = 2` argument in the code above, with no improvement in RMSE.
+Note that though it is not shown in the code above, multiple values (from 2 through 10) were tried in place of the `yes = 2` argument in the code above, with no improvement in RMSE.
 
 Let's try tuning the model instead:
 
@@ -631,10 +636,9 @@ Now, let's find the best values and run our model again:
 # Find the index of the model with the lowest RMSE
 best_model_index <- which.min(rmse_values)
 
-# Access the best model
+# Access the best model and parameter combination
 best_model <- models[[best_model_index]]
 names(models[best_model_index])
-# looks like the best parameters are mtry = 2, nodesize = 5, and ntree = 500
 
 # Print the RMSE values
 rmse_9 <- rmse_values[best_model_index]
@@ -671,7 +675,7 @@ dtest <- xgb.DMatrix(data = as.matrix(x_test), label = y_test)
 
 Now, let's set some standard hyperparameters and run the boosted model:
 
-```{r}
+```{r, results = 'hide'}
 # Set hyperparameters (we may need to tune these)
 params <- list(
   objective = "reg:squarederror",  # Regression task
@@ -684,6 +688,11 @@ params <- list(
 # Train the xgboost model
 xgb_model <- xgboost(data = dtrain, params = params, nrounds = 100)
 
+```
+
+Now, let's make some predictions and evaluate RMSE:
+
+```{r}
 # Make predictions on the training set (you can use a separate test set for predictions)
 predictions <- predict(xgb_model, as.matrix(x_test))
 rmse_10 <- RMSE(predictions, y_test)
@@ -751,6 +760,10 @@ Now, let's use the best parameter selection and run another model:
 # Find the best hyperparameters
 best_params <- results_df[which.min(results_df$rmse), ]
 print(best_params)
+```
+
+
+```{r, results = 'hide'}
 
 # Let's try running our model again with these "best" parameters
 params <- list(
@@ -765,6 +778,12 @@ params <- list(
 )
 
 xgb_model <- xgboost(data = dtrain, params = params, nrounds = 100)
+
+```
+
+Finally, let's use the optimized model to make predictions and evaluate performance:
+
+```{r}
 predictions <- predict(xgb_model, as.matrix(x_test))
 rmse_11 <- RMSE(predictions, y_test)
 rmse_11
@@ -775,7 +794,7 @@ rmse_summary <- bind_rows(rmse_summary,
 rmse_summary
 ```
 
-The tuned boosted model did improve RMSE slightly over the initial boosted model; however, it may have been too granular since the random forest models performed better overall.
+The tuned boosted model did improve RMSE slightly over the initial boosted model; however, a gradient boosted model in general may have been too granular for our limited dataset since the more generalized random forest models performed slightly better overall.
 
 ## Summary
 

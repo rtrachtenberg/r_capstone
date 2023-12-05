@@ -1,4 +1,4 @@
-# Abalone Age Prediction Project
+# Abalone Age Prediction Project Code
 
 # Install packages and open libraries
 package_names <- c("AppliedPredictiveModeling", 
@@ -345,16 +345,16 @@ results
 results <- results %>% rename(rmse = mse, alphas = alpha)
 
 # Print the best result:
-results$alphas[which.min(results$rmse)] # It seems like an alpha value of 0.4 is best here
+best_alpha <- results$alphas[which.min(results$rmse)] # store the best alpha in a variable
 
-# Run elastic net regression model with alpha = 0.4
+# Run elastic net regression model with the best alpha
 
-alpha0.4.fit <- cv.glmnet(x= as.matrix(train_set_scaled[ , predictor_names]), y= train_set_scaled$Age, family= "gaussian", 
-                          type.measure = "mse", alpha = 0.4, nlambda = 100)
+alpha.best.fit <- cv.glmnet(x= as.matrix(train_set_scaled[ , predictor_names]), y= train_set_scaled$Age, family= "gaussian", 
+                          type.measure = "mse", alpha = best_alpha, nlambda = 100)
 
-alpha0.4.predicted <- predict(alpha0.4.fit, s = alpha0.4.fit$lambda.min, newx = as.matrix(test_set_scaled[ , predictor_names]))
+alpha.best.predicted <- predict(alpha.best.fit, s = alpha.best.fit$lambda.min, newx = as.matrix(test_set_scaled[ , predictor_names]))
 
-rmse_7 <- RMSE(test_set_scaled$Age, alpha0.4.predicted)
+rmse_7 <- RMSE(test_set_scaled$Age, alpha.best.predicted)
 
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Elastic Net Regression - Best Alpha",
@@ -576,10 +576,11 @@ rmse_summary <- bind_rows(rmse_summary,
                                  RMSE = round(rmse_11,3)))
 rmse_summary
 
-# It is possible that the xgboost model ran into issues with overfitting
+# RMSE of the tuned model is slightly better than the initial boosted model.
+# However, it does not beat the random forest RMSE.
 
-# Either way, our tuned random forest model is the winner! 
-# Let's take a look at a sorted version of our RMSE Summary table:
+# Our tuned random forest model is the winner! 
+# Let's take a look at a sorted version of our RMSE Summary Table:
 
 rmse_summary_sorted <- rmse_summary %>%
   arrange(RMSE)
