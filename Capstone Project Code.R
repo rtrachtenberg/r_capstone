@@ -161,9 +161,16 @@ corplot1
 
 # Machine Learning Applications
 
-# Split data into test and training sets
+# Prepare data for Linear Regression
+
+# Define RMSE function
+RMSE <- function(true_ratings, predicted_ratings) {
+  sqrt(mean((true_ratings - predicted_ratings)^2))
+}
 
 set.seed(100) # Set the seed so that the indices are consistent if running code again
+
+# Generate train and test sets
 train_index <- createDataPartition(abalone_clean$Age, p = 0.8, list = FALSE)
 train_set <- abalone_clean[train_index, ]
 test_set <- abalone_clean[-train_index, ]
@@ -220,24 +227,17 @@ rmse_summary <- bind_rows(rmse_summary,
                                  RMSE = round(rmse_3, 3)))
 rmse_summary
 
-# Better! 
-# Can we use this dataset with interaction terms
-# and improve further by implementing regularization?
+# Apply Regularization
 
-# First, transform Sex to a numeric value so that all predictor variables are numeric:
+# Transform Sex to a numeric value so that all predictor variables are numeric:
 train_set_continuous <- train_set_intxns %>% mutate(Sex_Integer = as.integer(train_set$Sex)) %>% select(-c(Sex))
 test_set_continuous <- test_set_intxns %>% mutate(Sex_Integer = as.integer(test_set$Sex)) %>% select(-c(Sex))
-
-# Since regularization methods are sensitive to the scale of the input features, 
-# let's (a) ensure our features are on a similar scale and (b) if not, use a feature
-# scaling technique such as standardization
-# Even though the glmnet package standardizes data automatically, we will do this anyway for practice and educational purposes.
 
 # Initialize the scaled data frames
 train_set_scaled <- train_set_continuous
 test_set_scaled <- test_set_continuous
 
-# (a) Ensure features are on a similar scale:
+# Ensure features are on a similar scale:
 scale_names_train <- colnames(train_set_continuous)[!colnames(train_set_continuous) %in% c("Age")]
 scale_names_test <- colnames(test_set_continuous)[!colnames(test_set_continuous) %in% c("Age")]
 
@@ -255,7 +255,6 @@ feature_summary
 train_set_scaled[, scale_names_train] <- scale(train_set_continuous[, scale_names_train])
 test_set_scaled[, scale_names_test] <- scale(test_set_continuous[, scale_names_test])
 
-# Check means and SDs after scaling
 # Now, check the means and standard deviations after scaling
 scaled_feature_summary <- data.frame(
   Feature = scale_names_train,
@@ -265,57 +264,36 @@ scaled_feature_summary <- data.frame(
 
 scaled_feature_summary
 # the scaling process has centered the data (resulting in a mean close to zero) 
-# and standardized its spread (resulting in a standard deviation close to 1) for each feature. 
-# Without scaling, features with larger scales may dominate the penalty term, 
-# leading the model to focus more on those features, potentially ignoring smaller-scale features that may be important to age prediction.
-# Scaling ensures that the regularization strength (the hyperparameter controlling the extent of regularization) applies uniformly across features.
-# It helps ensure that all features contribute more equally to the learning process.
 
-# Perform elastic net regression regularization technique, determining lambda using cross-validation 
-# Lasso (L1) regression works best when your model contains lot of useless variables, shrinks some parameters to 0 to create a simpler model
-# Ridge (L2) regression works best when most variables in the model are useful, shrinks parameters but does not remove them
-# Elastic net regression combines the two penalties and is especially good at dealing with situations
-# when there are correlations between parameters
-
-# Perform Ridge Regression and see if it reduces RMSE. Ridge Regression can be a suitable technique for 
-# improving model performance when there is multicollinearity among predictor variables, which we have in our dataset.
-# However, it does not perform variable selection and will only shrink coefficients toward 0, not exactly at 0.
+# Perform Ridge (L2) Regression
 # Ridge regression may be more suitable for a dataset with a larger number of predictors, but let's see how our model performs.
 
 # Define predictor names so that Age is not included as a predictor during model fitting
-# and so that the "Sex" variable does not coerce the entire matrix variable classes to characters
-predictor_names <- colnames(train_set_scaled)[!colnames(train_set_scaled) %in% c("Age", "Sex")]
+predictor_names <- colnames(train_set_scaled)[!colnames(train_set_scaled) %in% c("Age")]
 
 # Run regularized model and use to output predictions
 alpha0.fit <- cv.glmnet(x= as.matrix(train_set_scaled[,predictor_names]), y= train_set_scaled$Age, family= "gaussian", 
           type.measure = "mse", alpha = 0, nlambda = 100)
 
 alpha0.predicted <- predict(alpha0.fit, s = alpha0.fit$lambda.min, newx = as.matrix(test_set_scaled[,predictor_names]))
-rmse_5 <- RMSE(test_set_scaled$Age, alpha0.predicted)
-rmse_5
+rmse_4 <- RMSE(test_set_scaled$Age, alpha0.predicted)
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Linear Reg w Ridge (L2) Regression",
-                                 RMSE = rmse_5))
+                                 RMSE = round(rmse_4,3)))
 rmse_summary
 
-# The RMSE is better than the linear regression models with only 1 or 2 variables as inputs, but it doesn't seem 
-# like ridge regression is helping much using these parameters. 
-# Lasso regression may be better since it performs variable selection by setting some coefficients completely to 0.
-
-# Perform Lasso Regression and see if it reduces RMSE
+# Perform Lasso (L1) Regression and see if it reduces RMSE
 
 alpha1.fit <- cv.glmnet(x= as.matrix(train_set_scaled[,predictor_names]), y= train_set_scaled$Age, family= "gaussian", 
                         type.measure = "mse", alpha = 1, nlambda = 100)
 
 alpha1.predicted <- predict(alpha1.fit, s = alpha1.fit$lambda.min, newx = as.matrix(test_set_scaled[ , predictor_names]))
-rmse_6 <- RMSE(test_set_scaled$Age, alpha1.predicted)
-rmse_6
+rmse_5 <- RMSE(test_set_scaled$Age, alpha1.predicted)
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Linear Reg w Lasso (L1) Regression",
-                                 RMSE = rmse_6))
+                                 RMSE = round(rmse_5, 3)))
 rmse_summary
 
-# This looks like a huge improvement, although it still doesn't quite beat out our LR model with interaction terms
 # Now, let's try elastic net regression to see if a combination of ridge and lasso penalties may offer 
 # a better balance between variable selection and handling multicollinearity.
 
@@ -324,29 +302,31 @@ alpha0.5.fit <- cv.glmnet(x= as.matrix(train_set_scaled[ , predictor_names]), y=
                         type.measure = "mse", alpha = 0.5, nlambda = 100)
 
 alpha0.5.predicted <- predict(alpha0.5.fit, s = alpha0.5.fit$lambda.min, newx = as.matrix(test_set_scaled[ , predictor_names]))
-rmse_7 <- RMSE(test_set_scaled$Age, alpha0.5.predicted)
-rmse_7
+rmse_6 <- RMSE(test_set_scaled$Age, alpha0.5.predicted)
+rmse_6
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Elastic Net Regression",
-                                 RMSE = rmse_7))
+                                 RMSE = round(rmse_6, 3)))
 rmse_summary
 
 # Lasso (L1) Regression or Elastic Net Regression seems to yield the best result, 
 # but to understand which combination of penalties is truly best,
 # we need to try many different values for alpha by optimizing the elastic net regression.
 
-fit_values <- list()
+fit_values <- list() # initialize empty list of fit_values
 
+# for loop to generate models using different values of alpha
 for (i in 0:10) {
-  fit_name <- paste0("alpha", i/10)
+  fit_name <- paste0("alpha", i/10) 
   
   fit_values[[fit_name]] <-
     cv.glmnet(x = as.matrix(train_set_continuous[ , predictor_names]), y= train_set_continuous$Age, family= "gaussian", 
               type.measure = "mse", alpha = i/10, nlambda = 100)
 }
 
-results <- data.frame()
+results <- data.frame() # initialize empty dataframe for results
 
+# for loop to run models and showcase results
 for (i in 0:10) {
   fit_name <- paste0("alpha", i/10)
   
@@ -364,89 +344,44 @@ results
 
 results <- results %>% rename(rmse = mse, alphas = alpha)
 
-# since it's difficult to tell which alpha is the lowest just from the graph, print result below:
-results$alphas[which.min(results$rmse)]
+# Print the best result:
+results$alphas[which.min(results$rmse)] # It seems like an alpha value of 0.4 is best here
 
-# It seems like an alpha value of 0.4 is best here, but since the rmse is the same to the hundredths decimal place as the RMSE 
-# we got when running the initial elastic net regression with alpha = 0.5, we will not add it to the table
+# Run elastic net regression model with alpha = 0.4
 
-# See if there is a better result that can be obtained by finding the best combination of alpha and lambda
+alpha0.4.fit <- cv.glmnet(x= as.matrix(train_set_scaled[ , predictor_names]), y= train_set_scaled$Age, family= "gaussian", 
+                          type.measure = "mse", alpha = 0.4, nlambda = 100)
 
-alpha_values <- seq(0, 1, by = 0.1)  # 0 for Ridge, 1 for Lasso, 0.5 for Elastic Net
-lambda_values <- seq(from = 0.01, to = 1, length.out = 500)
+alpha0.4.predicted <- predict(alpha0.4.fit, s = alpha0.4.fit$lambda.min, newx = as.matrix(test_set_scaled[ , predictor_names]))
 
-# Create an empty matrix to store cross-validated errors
-cv_errors <- matrix(NA, nrow = length(alpha_values), ncol = length(lambda_values),
-                    dimnames = list(as.character(alpha_values), as.character(lambda_values)))
+rmse_7 <- RMSE(test_set_scaled$Age, alpha0.4.predicted)
 
-# Perform the grid search
-for (i in seq_along(alpha_values)) {
-  alpha <- alpha_values[i]
-  
-  # Run cross-validated glmnet with a vector of lambda values
-  cv_model <- cv.glmnet(x = as.matrix(train_set_continuous[, predictor_names]), 
-                        y = train_set_continuous$Age,
-                        alpha = alpha, lambda = lambda_values)
-  
-  # Store the cross-validated errors
-  cv_errors[i, ] <- cv_model$cvm
-}
+rmse_summary <- bind_rows(rmse_summary,
+                          tibble(Model = "Elastic Net Regression - Best Alpha",
+                                 RMSE = round(rmse_7, 3)))
+rmse_summary
 
-# Find the minimum cross-validated error and its corresponding alpha and lambda
-min_error <- min(cv_errors)
-min_index <- which(cv_errors == min(cv_errors), arr.ind = TRUE)
+# Still not the best RMSE. Move on to testing ensemble methods.
 
-# Extract the row and column indices
-best_alpha_index <- min_index[1, 1]
-best_lambda_index <- min_index[1, 2]
+# Random forest model
 
-# Extract the best alpha and lambda
-best_alpha <- alpha_values[best_alpha_index]
-best_lambda <- lambda_values[best_lambda_index]
-
-# Convert to numeric if needed
-best_alpha <- as.numeric(best_alpha)
-best_lambda <- as.numeric(best_lambda)
-
-# Fit the final model using the best alpha and lambda
-final_model <- glmnet(x = as.matrix(train_set_continuous[, predictor_names]), 
-                      y = train_set_continuous$Age,
-                      alpha = best_alpha, lambda = best_lambda)
-
-# Make predictions on the test set
-predictions <- predict(final_model, s = best_lambda, 
-                       newx = as.matrix(test_set_continuous[, predictor_names]))
-
-# Calculate RMSE
-rmse <- RMSE(test_set_continuous$Age, predictions)
-rmse
-cat("Best Alpha:", best_alpha, "\n")
-cat("Best Lambda:", best_lambda, "\n")
-cat("Test Set RMSE:", rmse, "\n")
-
-# The RMSE obtained with "optimized" parameters still doesn't beat the default parameters we already used.
-# This could be due to underfitting, the range of hyperparameter values not being inclusive enough, and/or 
-# may not be effective since we've already done some feature engineering by adding interaction terms.
-# Since the RMSE is higher, we will avoid adding the RMSE to the table to avoid cluttering it up.
-
-# Let's try a random forest model instead:
+# Run a random forest model with default parameters:
 rf_model <- randomForest(Age ~ ., data = train_set_intxns, ntree = 500)
 predictions <- predict(rf_model, test_set_intxns)
 rmse_8 <- RMSE(predictions, test_set_intxns$Age)
-rmse_8
 
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Random Forest - Default Params",
-                                 RMSE = rmse_8))
+                                 RMSE = round(rmse_8, 3)))
 rmse_summary
 
-# This result is pretty good, but doesn't beat our LR with interaction terms RMSE. 
+# This is our best result yet! 
 # Let's try running the same random forest model, but with incorporation of class weights
 # (by assigning a higher weight to older age groups with a lower sample size) to address
 # the issue of unbalanced data:
 
 # Assign class weights (higher weight for age groups 15 years and older)
-class_weights <- ifelse(train_set_intxns$Age >= 15, 2, 1)
+class_weights <- ifelse(train_set_intxns$Age >= 15, yes = 2, no = 1)
 
 # Run the model with class weights
 rf_model_weights <- randomForest(
@@ -534,7 +469,7 @@ rmse_summary
 # and it doesn't seem like tuning is making a significant difference in RMSE, anyway
 
 # Let's try a gradient boosting model, since it's generally known for improved performance over 
-# random forests and like random forests, is capable of capturing non-linear relationships
+# random forests for unbalanced data
 
 # Separate out x and y variables
 
@@ -562,11 +497,10 @@ xgb_model <- xgboost(data = dtrain, params = params, nrounds = 100)
 # Make predictions on the training set (you can use a separate test set for predictions)
 predictions <- predict(xgb_model, as.matrix(x_test))
 rmse_10 <- RMSE(predictions, y_test)
-rmse_10
 
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Gradient Boosted Model - Default Params",
-                                 RMSE = rmse_10))
+                                 RMSE = round(rmse_10, 3)))
 rmse_summary
 
 # Tune the model
@@ -639,64 +573,15 @@ rmse_11
 
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Gradient Boosted Model - Tuned Params",
-                                 RMSE = rmse_11))
+                                 RMSE = round(rmse_11,3)))
 rmse_summary
 
-# It seems like we are running into issues with overfitting and the RMSE is not improving
-# even after optimizing parameters for the XG boosted model
+# It is possible that the xgboost model ran into issues with overfitting
 
-# Let's try stacking models
-# Re-split the data from the original abalone_clean dataset into training, validation, and test sets
+# Either way, our tuned random forest model is the winner! 
+# Let's take a look at a sorted version of our RMSE Summary table:
 
-# Assuming your dataset is in a data frame called 'data'
-set.seed(123)  # Set seed for reproducibility
+rmse_summary_sorted <- rmse_summary %>%
+  arrange(RMSE)
+rmse_summary_sorted
 
-# Create a vector of indices for the stratified split
-abalone_clean_df <- abalone_clean %>% mutate(Sex_Integer = as.integer(Sex)) %>% select(-c(Sex)) %>% mutate(Sex_Factor = as.factor(Sex_Integer))
-abalone_clean_age_numeric = abalone_clean_df$Age
-train_set_indices <- createDataPartition(abalone_clean_age_numeric, p = 0.7, list = FALSE)
-
-# Create the training set
-train_set <- abalone_clean_df[train_set_indices, ]
-
-# Create a numeric with all the remaining indices.
-# The purpose of this numeric is to be split 50/50 
-# between validation and test set
-abalone_clean_age_numeric_remaining <- abalone_clean_age_numeric[-train_set_indices]
-
-# Create the validation and test sets
-val_set_indices <- createDataPartition(abalone_clean_age_numeric_remaining, p = 0.5, list = FALSE)
-val_set <- abalone_clean_df[val_set_indices, ]
-
-test_set_indices = abalone_clean_age_numeric_remaining[-val_set_indices]
-test_set <- abalone_clean_df[test_set_indices, ]
-
-# Train base models
-rf_model <- randomForest(Age ~ ., data = train_set)
-xgb_model <- xgboost(data = as.matrix(subset(train_set, select = -c(Age, Sex_Factor))), label = train_set$Age, nrounds = 100, verbose = 0)
-
-# Make predictions on the validation set
-rf_pred <- predict(rf_model, newdata = val_set)
-xgb_pred <- predict(xgb_model, newdata = as.matrix(subset(val_set, select = -c(Age, Sex_Factor))))
-
-# Combine predictions for stacking
-stacking_data <- data.frame(rf_pred, xgb_pred, Age = val_set$Age)
-
-# Train meta-model (e.g., linear regression) on the stacked predictions
-meta_model <- gbm(Age ~ ., data = stacking_data)
-
-# Make predictions on the test set
-rf_test_pred <- predict(rf_model, newdata = test_set)
-xgb_test_pred <- predict(xgb_model, newdata = as.matrix(subset(test_set, select = -c(Age, Sex_Factor))))
-
-# Combine predictions for stacking on the test set and preserve the structure of stacking_data
-stacking_test_data <- data.frame(rf_test_pred, xgb_test_pred, Age = test_set$Age)
-
-# Make final predictions using the meta-model
-final_predictions <- predict(meta_model, newdata = stacking_test_data)
-
-# Evaluate the final predictions
-final_rmse <- RMSE(final_predictions, test_set$Age)
-print(final_rmse)
-
-# Stacking gave us an abysmal result, so we will stick with simpler methods for this one.

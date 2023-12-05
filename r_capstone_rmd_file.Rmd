@@ -16,10 +16,10 @@ knitr::opts_chunk$set(echo = TRUE)
 The abalone dataset, downloaded from the AppliedPredictiveModeling R package (which can be accessed at this [link](https://github.com/cran/AppliedPredictiveModeling/tree/master/data)), contains 4,177 instances of physical and qualitative observations of this type of marine snail. The data originated from a 1995 study conducted by UC Irvine and contains the following data:
 
 | Variable Name | Variable Type | Units       | Description                                                     |
-|---------------|---------------|---------------|---------------------------|
+|---------------|---------------|-------------|-----------------------------------------------------------------|
 | Sex           | Categorical   | NA          | Split into 3 categories: M (Male), F (Female), and I (Immature) |
 | LongestShell  | Continuous    | millimeters | Abalone length measured from ends of longest shell              |
-| Diameter      | Continuous    | millimeters | Abalone shell diameter (perpendicular to longest shell length)  |
+| Diameter      | Continuous    | millimeters | Abalone shell diameter E(perpendicular to longest shell length) |
 | Height        | Continuous    | millimeters | Abalone height, including meat within shell                     |
 | WholeWeight   | Continuous    | grams       | Whole abalone weight                                            |
 | ShuckedWeight | Continuous    | grams       | Weight of abalone flesh (not including exoskeleton or shell)    |
@@ -251,9 +251,14 @@ This plot indicates that we will need to proceed cautiously regarding multicolli
 
 Now that we have a good sense of our cleaned up data, let's start running some models!
 
-First, let's set the seed (so that anyone that reviews this will get the same indices and therefore model results that I do when running my code below) and split our data into training and test sets:
+First, let's define our RMSE function, set the seed (so that anyone that reviews this will get the same indices and therefore model results that I do when running my code below), and split our data into training and test sets:
 
 ```{r}
+# Define RMSE function
+RMSE <- function(true_ratings, predicted_ratings) {
+  sqrt(mean((true_ratings - predicted_ratings)^2))
+}
+
 set.seed(100) # Set the seed
 
 train_index <- createDataPartition(abalone_clean$Age, p = 0.8, list = FALSE)
@@ -334,8 +339,463 @@ Nice! We got an even better RMSE, but this does not solve our multicollinearity 
 
 ### Regularization Application
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+#### Data Preparation
+
+First, let's transform Sex to a numeric value so that all predictor variables are numeric:
+
+```{r}
+train_set_continuous <- train_set_intxns %>% 
+  mutate(Sex_Integer = as.integer(train_set$Sex)) %>% select(-c(Sex))
+
+test_set_continuous <- test_set_intxns %>% 
+  mutate(Sex_Integer = as.integer(test_set$Sex)) %>% select(-c(Sex))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Since regularization methods are sensitive to the scale of the input features, let's (a) ensure our features are on a similar scale and (b) if not, use a feature scaling technique such as standardization.
+
+\* Note that though the `glmnet` package that we are going to use to run regularized models standardizes data automatically, we will do this anyway for practice and educational purposes.
+
+```{r}
+# Initialize the scaled data frames
+train_set_scaled <- train_set_continuous
+test_set_scaled <- test_set_continuous
+
+# Ensure features are on a similar scale:
+scale_names_train <- colnames(train_set_continuous)[!colnames(train_set_continuous) %in% c("Age")]
+scale_names_test <- colnames(test_set_continuous)[!colnames(test_set_continuous) %in% c("Age")]
+
+# Check the means and standard deviations of the features
+feature_summary <- data.frame(
+  Feature = scale_names_train,
+  Mean = colMeans(train_set_continuous[, scale_names_train]),
+  SD = apply(train_set_continuous[, scale_names_train], 2, sd)
+)
+
+feature_summary
+```
+
+It does not look like our features are on a similar scale, indicated by the wide range of means and standard deviations for each feature, so we can scale using the code below:
+
+```{r}
+# Implement feature scaling using the scale() function
+train_set_scaled[, scale_names_train] <- scale(train_set_continuous[, scale_names_train])
+test_set_scaled[, scale_names_test] <- scale(test_set_continuous[, scale_names_test])
+
+# Now, check the means and standard deviations after scaling
+scaled_feature_summary <- data.frame(
+  Feature = scale_names_train,
+  Mean = colMeans(train_set_scaled[, scale_names_train]),
+  SD = apply(train_set_scaled[, scale_names_train], 2, sd)
+)
+
+scaled_feature_summary
+```
+
+The scaling process has centered the data (resulting in a mean close to zero) and standardized its spread (resulting in a standard deviation close to 1) for each feature. Scaling ensures that the regularization strength (the hyperparameter controlling the extent of regularization) applies uniformly across features, so now that this is done, we can proceed with regularization.
+
+#### Regularization - Ridge (L2) Regression
+
+Ridge (L2) regression works best when most variables in the model are useful, as it shrinks parameters but does not remove them. Note that the parameter that makes this Ridge (L2) Regression is the alpha parameter set at 0. Let's see how our ridge regression model performs:
+
+```{r}
+# Define predictor names so that Age is not included as a predictor during model fitting
+
+predictor_names <- colnames(train_set_scaled)[!colnames(train_set_scaled) %in% c("Age")]
+
+# Run regularized model and use to output predictions
+
+alpha0.fit <- cv.glmnet(x= as.matrix(train_set_scaled[,predictor_names]), y= train_set_scaled$Age, family= "gaussian", 
+          type.measure = "mse", alpha = 0, nlambda = 100)
+
+alpha0.predicted <- predict(alpha0.fit, s = alpha0.fit$lambda.min, newx = as.matrix(test_set_scaled[,predictor_names]))
+
+rmse_4 <- RMSE(test_set_scaled$Age, alpha0.predicted)
+
+rmse_summary <- bind_rows(rmse_summary,
+                          tibble(Model = "Linear Reg w Ridge (L2) Regression",
+                                 RMSE = round(rmse_4, 3)))
+rmse_summary
+```
+
+It looks like this didn't have quite the effect on RMSE that we were hoping for, but maybe that's because Lasso (L1) Regression is a better fit.
+
+#### Regularization - Lasso (L1) Regression
+
+Lasso (L1) Regression works best when there are some variables in the model that are useless or redundant (sounds like our multicollinearity issue!), as it shrinks these parameters completely to zero and therefore generates a simpler model. Note that the parameter that indicates Lasso (L1) Regression is the alpha parameter set at 1. Let's see how our lasso regression model performs:
+
+```{r}
+# Run regularized model and use to output predictions
+
+alpha1.fit <- cv.glmnet(x= as.matrix(train_set_scaled[,predictor_names]), 
+                        y= train_set_scaled$Age, family= "gaussian", 
+                        type.measure = "mse", alpha = 1, nlambda = 100)
+
+alpha1.predicted <- predict(alpha1.fit, s = alpha1.fit$lambda.min, newx = as.matrix(test_set_scaled[ , predictor_names]))
+
+rmse_5 <- RMSE(test_set_scaled$Age, alpha1.predicted)
+
+rmse_summary <- bind_rows(rmse_summary,
+                          tibble(Model = "Linear Reg w Lasso (L1) Regression",
+                                 RMSE = round(rmse_5, 3)))
+rmse_summary
+```
+
+The regularized model here seems to be an improvement, although it still doesn't quite beat out the RMSE from our linear regression model with interaction terms.
+
+Finally, let's try elastic net regression to see if this improves our RMSE.
+
+#### Regularization - Elastic Net Regression
+
+Elastic net regression combines the the two regularization penalties (alpha and lambda) and is also good at dealing with situations when there are correlations between parameters. Note that the parameter that indicates Lasso (L1) Regression is the alpha parameter set between 0 and 1. We will use an alpha of 0.5 to get an idea of whether this method will be useful.
+
+```{r}
+# Run regularized model and use to output predictions
+
+alpha0.5.fit <- cv.glmnet(x= as.matrix(train_set_scaled[ , predictor_names]), y= train_set_scaled$Age, family= "gaussian", 
+                        type.measure = "mse", alpha = 0.5, nlambda = 100)
+
+alpha0.5.predicted <- predict(alpha0.5.fit, s = alpha0.5.fit$lambda.min, newx = as.matrix(test_set_scaled[ , predictor_names]))
+
+rmse_6 <- RMSE(test_set_scaled$Age, alpha0.5.predicted)
+
+rmse_summary <- bind_rows(rmse_summary,
+                          tibble(Model = "Elastic Net Regression",
+                                 RMSE = round(rmse_6, 3)))
+rmse_summary
+```
+
+It seems like the optimal combination of alpha and lambda may have yet to be found.
+
+#### Regularization - Optimize Penalty Combination
+
+In order to understand which combination of penalties is truly best, we need to try many different values for alpha by optimizing the elastic net regression. We can do so and then run a model using the optimal alpha value using the following code:
+
+```{r}
+fit_values <- list() # initialize empty list of fit_values
+
+# for loop to generate models using different values of alpha
+for (i in 0:10) {
+  fit_name <- paste0("alpha", i/10)
+  
+  fit_values[[fit_name]] <-
+    cv.glmnet(x = as.matrix(train_set_continuous[ , predictor_names]), y= train_set_continuous$Age, family= "gaussian", 
+              type.measure = "mse", alpha = i/10, nlambda = 100)
+}
+
+results <- data.frame() # initialize empty dataframe for results
+
+# for loop to run models and showcase results
+for (i in 0:10) {
+  fit_name <- paste0("alpha", i/10)
+  
+  predicted <- 
+    predict(fit_values[[fit_name]], 
+            s = fit_values[[fit_name]]$lambda.min, newx = as.matrix(test_set_continuous[ , predictor_names]))
+  
+  rmse <- RMSE(test_set_continuous$Age, predicted)
+  
+  temp <- data.frame(alpha = i/10, mse = rmse, fit_name = fit_name)
+  results <- rbind(results, temp)
+}
+
+results
+
+# rename colnames of results dataframe for clarity
+results <- results %>% rename(rmse = mse, alphas = alpha)
+
+# Print the best result:
+results$alphas[which.min(results$rmse)] # best alpha is 0.4
+
+# Run elastic net regression model with alpha = 0.4
+
+alpha0.4.fit <- cv.glmnet(x= as.matrix(train_set_scaled[ , predictor_names]), y= train_set_scaled$Age, family= "gaussian", 
+                        type.measure = "mse", alpha = 0.4, nlambda = 100)
+
+alpha0.4.predicted <- predict(alpha0.4.fit, s = alpha0.4.fit$lambda.min, newx = as.matrix(test_set_scaled[ , predictor_names]))
+
+rmse_7 <- RMSE(test_set_scaled$Age, alpha0.4.predicted)
+
+rmse_summary <- bind_rows(rmse_summary,
+                          tibble(Model = "Elastic Net Regression - Best Alpha",
+                                 RMSE = round(rmse_7, 3)))
+rmse_summary
+
+```
+
+It seems like an alpha value of 0.4 is best here. Even though the RMSE is the same as the RMSE we got when running the initial elastic net regression with alpha = 0.5, we will still add it to the table to show that we tested the optimized model.
+
+Overall, the elastic net regression seemed to improve our RMSE notably, although still not as much as the linear regression with interaction terms. Let's see if an ensemble method, which tends to be generally more advanced and robust to overfitting, can help improve our RMSE.
+
+### Random Forest Model
+
+[According to IBM](https://www.ibm.com/topics/random-forest), a random forest model is a machine learning algorithm that generates a combination, or "forest," of decision trees, which act as a means to split the data to arrive at a final predicted result. While decision trees consider all the possible feature splits, random forests only select a subset of those features.
+
+Let's start by running a random forest model on our data with default parameters:
+
+```{r}
+rf_model <- randomForest(Age ~ ., data = train_set_intxns, ntree = 500)
+predictions <- predict(rf_model, test_set_intxns)
+rmse_8 <- RMSE(predictions, test_set_intxns$Age)
+
+rmse_summary <- bind_rows(rmse_summary,
+                          tibble(Model = "Random Forest - Default Params",
+                                 RMSE = round(rmse_8, 3)))
+rmse_summary
+```
+
+This is our best result yet! Let's try running the same random forest model, but with incorporation of class weights (by assigning a higher weight to older age groups with a lower sample size) to address the issue of unbalanced data:
+
+```{r}
+# Assign class weights (higher weight for age groups 15 years and older)
+class_weights <- ifelse(train_set_intxns$Age >= 15, yes = 2, no = 1)
+
+# Run the model with class weights
+rf_model_weights <- randomForest(
+  formula = Age ~ .,
+  data = train_set_intxns,
+  ntree = 500,
+  classwt = class_weights
+  )
+
+predictions <- predict(rf_model_weights, test_set_intxns)
+rmse_rf_wt <- RMSE(predictions, test_set_intxns$Age)
+rmse_rf_wt
+```
+
+It doesn't seem like this improved our RMSE from the initial random forest model, so we will leave it out of the table to avoid clutter.
+
+Note that multiple values (from 2 through 10) were tried in place of the `yes = 2` argument in the code above, with no improvement in RMSE.
+
+Let's try tuning the model instead:
+
+```{r}
+# Specify the training control settings for cross-validation (with a 10-fold cross validation)
+ctrl <- trainControl(method = "cv", number = 10)
+
+# We could use the tuneGrid argument of the train() function in the caret package to do this,
+# but let's try adjusting parameters using the randomForest() function instead 
+
+param_grid <- expand.grid(
+  mtry = c(2, 4, 6),
+  nodesize = c(1,3,5),
+  ntree = c(100, 300, 500)
+)
+
+# Create an empty list to store the models
+models <- list()
+
+```
+
+Let's continue with our model tuning process. Note that the following code may take around 5 minutes to run, depending on the capabilities of your computer.
+
+```{r}
+# Iterate over each combination of parameters 
+# WARNING: Note that this code will take around 5 minutes to run.
+for (i in 1:nrow(param_grid)) {
+  params <- param_grid[i, ]
+  
+  # Train the model with the current set of parameters
+  model <- randomForest(
+    x = train_set_intxns[, colnames(train_set_intxns) != "Age"],
+    y = train_set_intxns$Age,
+    mtry = params$mtry,
+    nodesize = params$nodesize,
+    ntree = params$ntree
+  )
+  
+  # Store the trained model
+  models[[paste(params$mtry, params$nodesize, params$ntree, sep = "_")]] <- model
+}
+
+names(models)
+
+# Create an empty vector to store the RMSE values
+rmse_values <- numeric(length(models))
+
+# Evaluate each model on the test set
+for (i in seq_along(models)) {
+  model <- models[[i]]
+  
+  # Make predictions on the test set
+  predictions <- predict(model, newdata = test_set_intxns[, colnames(test_set_intxns) != "Age"])
+  
+  # Calculate RMSE
+  rmse_values[i] <- RMSE(predictions, test_set_intxns$Age)
+}
+
+```
+
+Now, let's find the best values and run our model again:
+
+```{r}
+# Find the index of the model with the lowest RMSE
+best_model_index <- which.min(rmse_values)
+
+# Access the best model
+best_model <- models[[best_model_index]]
+names(models[best_model_index])
+# looks like the best parameters are mtry = 2, nodesize = 5, and ntree = 500
+
+# Print the RMSE values
+rmse_9 <- rmse_values[best_model_index]
+rmse_9
+
+rmse_summary <- bind_rows(rmse_summary,
+                          tibble(Model = "Random Forest - Tuned Params",
+                                 RMSE = rmse_9))
+rmse_summary
+```
+
+It looks like using tuned parameters provided a slight improvement to our model. Let's try another ensemble method for comparison purposes.
+
+### Gradient Boosting
+
+[According to Amazon Web Services documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/xgboost-HowItWorks.html), gradient boosting trees attempt to predict a target variable by combining estimates of a set of simpler models. Although gradient boosted models can be prone to overfitting, they have been known to perform better than random forests in some cases due to the fact that they combine results along the way and iterate upon results throughout the selection process, as opposed to combining results at the end of the process as a random forest algorithm would.
+
+Let's attempt to use a gradient boosted model with the `xgboost` package.
+
+First, we need to do a bit of pre-processing to get the data into a format that is expected by `xgboost`:
+
+```{r}
+# Separate out x and y variables
+
+x_train <- subset(train_set_continuous, select = -c(Age))
+y_train <- train_set_continuous$Age
+x_test <- subset(test_set_continuous, select = -c(Age))
+y_test <- test_set_continuous$Age
+
+# Convert data to the format expected by xgboost
+dtrain <- xgb.DMatrix(data = as.matrix(x_train), label = y_train)
+dtest <- xgb.DMatrix(data = as.matrix(x_test), label = y_test)
+```
+
+Now, let's set some standard hyperparameters and run the boosted model:
+
+```{r}
+# Set hyperparameters (we may need to tune these)
+params <- list(
+  objective = "reg:squarederror",  # Regression task
+  eval_metric = "rmse",            # Evaluation metric (Root Mean Squared Error)
+  max_depth = 2,                 # Maximum depth of a tree
+  eta = 0.1,               # Learning rate
+  nrounds = 400     # Number of boosting rounds
+)
+
+# Train the xgboost model
+xgb_model <- xgboost(data = dtrain, params = params, nrounds = 100)
+
+# Make predictions on the training set (you can use a separate test set for predictions)
+predictions <- predict(xgb_model, as.matrix(x_test))
+rmse_10 <- RMSE(predictions, y_test)
+
+rmse_summary <- bind_rows(rmse_summary,
+                          tibble(Model = "Gradient Boosted Model - Standard Params",
+                                 RMSE = round(rmse_10, 3)))
+rmse_summary
+```
+
+This isn't looking quite as good as the random forest model, but let's try tuning parameters anyway:
+
+```{r}
+# Define hyperparameter grid
+param_grid <- expand.grid(
+  eta = c(0.01, 0.1, 0.3),
+  max_depth = c(3, 6, 9),
+  gamma = c(0, 0.1, 0.2),
+  subsample = c(0.8, 1.0),
+  colsample_bytree = c(0.8, 1.0),
+  min_child_weight = c(1, 3, 5)
+)
+
+# Function to train and evaluate model for a given set of hyperparameters
+
+train_and_evaluate <- function(params, train_data, test_data) {
+  # Convert non-numeric columns to numeric using one-hot encoding
+  train_data_matrix <- model.matrix(~ . - 1, data = train_data)
+  test_data_matrix <- model.matrix(~ . - 1, data = test_data)
+  
+  # Create DMatrix for training and testing data
+  dtrain <- xgb.DMatrix(data = train_data_matrix, label = train_data$Age)
+  dtest <- xgb.DMatrix(data = test_data_matrix, label = test_data$Age, missing = NA, nthread = 1)
+  
+  # Train the model
+  xgb_model <- xgboost(params = params, data = dtrain, nrounds = 100, verbose = 0)
+  
+  # Make predictions on the test set
+  predictions <- predict(xgb_model, newdata = dtest)
+  
+  # Evaluate the model
+  rmse <- sqrt(mean((predictions - test_data$Age)^2))
+  
+  return(data.frame(params, rmse))
+}
+
+# Apply the function to all combinations of hyperparameters
+# WARNING: This portion of the code may take 1-5 mins to run 
+# depending on your machine capabilities
+results <- apply(param_grid, 1, function(row) {
+  params <- as.list(row)
+  train_data <- train_set_continuous
+  test_data <- test_set_continuous
+  train_and_evaluate(params, train_data, test_data)
+})
+
+
+# Combine results into a data frame
+results_df <- do.call(rbind, results)
+```
+
+Now, let's use the best parameter selection and run another model:
+
+```{r}
+# Find the best hyperparameters
+best_params <- results_df[which.min(results_df$rmse), ]
+print(best_params)
+
+# Let's try running our model again with these "best" parameters
+params <- list(
+  objective = "reg:squarederror",  # Regression task
+  eval_metric = "rmse",            # Evaluation metric (Root Mean Squared Error)
+  max_depth = 3,                 # Maximum depth of a tree
+  eta = 0.1,     
+  gamma = 0,
+  subsample = 0.8,
+  colsample_bytree = 1,
+  min_child_weight = 1
+)
+
+xgb_model <- xgboost(data = dtrain, params = params, nrounds = 100)
+predictions <- predict(xgb_model, as.matrix(x_test))
+rmse_11 <- RMSE(predictions, y_test)
+rmse_11
+
+rmse_summary <- bind_rows(rmse_summary,
+                          tibble(Model = "Gradient Boosted Model - Tuned Params",
+                                 RMSE = rmse_11))
+rmse_summary
+```
+
+The tuned boosted model did improve RMSE slightly over the initial boosted model; however, it may have been too granular since the random forest models performed better overall.
+
+## Summary
+
+Within the scope of this project, our tuned random forest model is the winner!
+
+Let's take a look at a sorted version of our RMSE Summary table:
+
+```{r}
+rmse_summary_sorted <- rmse_summary %>%
+  arrange(RMSE)
+
+rmse_summary_sorted
+```
+
+We can likely assume that the random forest model was the best fit for our data due to plenty of factors; however, overall, the abalone dataset is a relatively simple one with only nine features (including the target variable), and may have been generalized better with a random forest model or linear regression (with all variables and adjusted inputs) over a more complex boosted model. In addition, most of the data in the abalone dataset seemed to have linear relationships, giving random forest and linear regression the edge over a gradient boosted model. Obviously, the simple linear regression model was too simple (likely underfit the data). Since we had issues with multicollinearity in the dataset and therefore, some of the variables were redundant and not contributing much to the predictive power, elastic net's ability to perform variable selection may have been advantageous over ridge regression's approach to simply shrinking all variable coefficients.
+
+## Reflections and Opportunities for Improvement
+
+I went about this problem assuming Age was a continuous variable. However, since the age range of abalones in the dataset is 2.5 - 30.5, incremented by 0.5 for each age group, this could have easily been a classification problem and machine learning models could have been tailored to a classified result. For example, using cluster methods such as kNN would have been a good application to assigning an age "category" to an abalone using the other eight features in the dataset as predictors. If I had used this approach, I would have been able to run confusion matrices, which may have also provided better metrics of how my model was performing than just using RMSE as an indicator.
+
+I was tentative to remove more observations from the dataset after cleaning since it already only had around 4,000 observations and 9 features, but another opportunity for improvement could have been better identification and adjustment of outliers in the dataset, especially since linear relationships were observed throughout. Removing outliers could have helped to reduce issues associated with noise (such as overfitting) and improve predictive power of my models.
+
+Overall, the abalone data sample size was likely the the biggest bottleneck to achieving better machine learning models and results. More than anything, I think my algorithms and any future algorithms run on this dataset would benefit highly from more observations to predict from. It would be interesting to look into whether there is a similar quality dataset (more recent than 1995) with greater observations and features of abalone traits.
