@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 The abalone dataset, downloaded from the AppliedPredictiveModeling R package (which can be accessed at this [link](https://github.com/cran/AppliedPredictiveModeling/tree/master/data)), contains 4,177 instances of physical and qualitative observations of this type of marine snail. The data originated from a 1995 study conducted by UC Irvine and contains the following data:
 
 | Variable Name | Variable Type | Units       | Description                                                     |
-|-----------------|--------------|-----------|-------------------------------|
+|---------------|---------------|---------------|---------------------------|
 | Sex           | Categorical   | NA          | Split into 3 categories: M (Male), F (Female), and I (Immature) |
 | LongestShell  | Continuous    | millimeters | Abalone length measured from ends of longest shell              |
 | Diameter      | Continuous    | millimeters | Abalone shell diameter (perpendicular to longest shell length)  |
@@ -27,21 +27,312 @@ The abalone dataset, downloaded from the AppliedPredictiveModeling R package (wh
 | ShellWeight   | Continuous    | grams       | Shell weight only (after being dried)                           |
 | Rings         | Integer       | NA          | Number of abalone rings observed, used to derive age in years   |
 
-According to the researchers that piloted the 1995 study, the age of an abalone is determined by cutting and staining the shell, followed by analysis under microscope, which is a cumbersome task. All information regarding the origin of this data can be found in the UC Irvine Machine Learning Repository archives, [here](http://archive.ics.uci.edu/dataset/1/abalone). The goal of this project is to see if the measurements already a part of this dataset can be used to predict the age instead of using time-consuming and invasive procedures.
+According to the researchers that piloted the 1995 study, the age of an abalone is determined by cutting and staining the shell, followed by analysis under microscope, which is a cumbersome task. All information regarding the origin of this data can be found in the UC Irvine Machine Learning Repository archives, [here](http://archive.ics.uci.edu/dataset/1/abalone). The goal of this project is to see if the measurements already a part of this dataset can be used to predict the age instead of using the aforementioned time-consuming and invasive procedures.
 
-## R Markdown
+## Load Libraries
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+First, we need to install packages and load libraries of those that are needed to complete the project and run all of the project code.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{r}
+# Install packages
+package_names <- c("AppliedPredictiveModeling", 
+                   "ggplot2", "dplyr", "tidyverse", "caret",
+                   "randomForest", "corrplot", "glmnet", "rmarkdown",
+                   "RColorBrewer", "xgboost", "DAAG", "Metrics")
+# Load libraries
+libraries_to_load <- c("AppliedPredictiveModeling", 
+                       "ggplot2", "dplyr", "tidyverse", "caret",
+                       "randomForest", "corrplot", "glmnet", "rmarkdown",
+                       "RColorBrewer", "xgboost", "DAAG", "Metrics")
+for (lib in libraries_to_load) {
+  library(lib, character.only = TRUE)
+}
 
-```{r cars}
-summary(cars)
+# Load and examine abalone dataset
+data(abalone)
+dim(abalone)
+str(abalone)
 ```
 
-## Including Plots
+Upon initial observation, it looks like the dataset has 4,177 observations and 9 columns, with variable information that generally matches what is in the documentation.
 
-You can also embed plots, for example:
+## Data Cleaning
+
+Now that we have our libraries and dataset loaded without error, we can inspect the structure and contents of the data and identify any parts that may require cleaning, formatting, and/or handling of outliers or missing data.
+
+First, we created a new column for "Age" (which is just the number of rings + 1.5), removed the "Rings" column to avoid confusion and issues with multicollinearity (Age and Rings would have a perfect correlation of 1 if the "Rings" variable were left in), and renamed the "Type" variable to "Sex" for clarity.
+
+```{r}
+abalone <- abalone %>% mutate(Age = Rings + 1.5) %>% rename(Sex = Type) %>% select(-Rings)
+```
+
+Next, we checked the minimum of each variable (ignoring the result of the categorical variable, "Sex"), to ensure that there were no "0" measurements.
+
+```{r}
+apply(abalone, 2, min)
+```
+
+It looks like the "Height" variable has at least one value of 0 that should be removed. It does not make sense that an abalone would not have a measurement for height and this could skew our results down the line when we apply models to the data.
+
+In addition, we know from a logical perspective that the shucked and viscera weight cannot be larger than whole weight, so any observations that show this are likely erroneous.
+
+```{r}
+sum(abalone$ShuckedWeight >= abalone$WholeWeight)
+# there are 4 values here that should be removed
+
+sum(abalone$VisceraWeight >= abalone$WholeWeight)
+# There are no values here that need to be removed
+```
+
+Now that we know which values need to be removed, let's generate a clean dataset:
+
+```{r}
+abalone_clean <- abalone %>% filter(ShuckedWeight <= WholeWeight) %>% filter(Height != 0)
+
+dim(abalone_clean)
+```
+
+The clean dataset has 4,171 observations and 9 columns, meaning we successfully removed the 6 erroneous observations.
+
+## Exploratory Data Analysis (EDA)
+
+### Plot Formatting
+
+Now that we have a clean dataset, let's get a feel for the data and how it's distributed throughout and within features. Since we will be doing a decent amount of plotting and graphing, let's first look into a color-blind friendly palette to use throughout our analysis using the RColorBrewer package.
+
+```{r}
+display.brewer.all(colorblindFriendly = TRUE)
+```
+
+We will be using the "Paired" and "Set2" palettes, so let's note their hexadecimal color names for future use using the following code:
+
+```{r}
+display.brewer.pal(n = 8, name = 'Paired')
+brewer.pal(n = 8, name = "Paired")
+display.brewer.pal(n = 8, name = 'Set2')
+brewer.pal(n = 8, name = "Set2")
+```
+
+Finally, let's define a shortcut for applying good general formatting to plots to save processing time later.
+
+```{r}
+gen_formatting <- theme(plot.title = element_text(face = "bold"),
+                        axis.title.y = element_text(margin = unit(c(0, 20, 0, 0), "pt"))
+)
+```
+
+### Univariate EDA
+
+First, let's visualize the distribution of abalone weights in the full dataset:
+
+```{r}
+plot1 <- ggplot(abalone_clean, aes(x = WholeWeight)) + 
+  geom_histogram(fill = "#FDBF6F", color = "#FF7F00", alpha = 0.7) +
+  labs(title = "Distribution of Abalone Weight",
+       x = "Weight (grams)",
+       y = "Count") +
+  gen_formatting
+
+plot1
+```
+
+It looks like whole weight of abalones in our dataset fall generally below 3 grams, with a majority clustered between 0 and 1.5 grams. This looks like a fairly normal distribution of weights throughout the dataset.
+
+Now, let's explore whether there are significant weight differences by Sex:
+
+```{r}
+# Visualize distribution of abalone weights by Sex
+plot2 <- ggplot(abalone_clean, aes(x = Sex, y = WholeWeight, fill = Sex)) + 
+  geom_boxplot() + 
+  labs(title = "Distribution of Abalone Weight by Sex",
+       x = "Sex",
+       y = "Weight (grams)") +
+  scale_fill_brewer(palette = "Set2", labels = c("Female", "Immature", "Male")) +
+  scale_x_discrete(labels = c("Female", "Immature", "Male")) +
+  gen_formatting
+  
+plot2 
+```
+
+Looking at this, it's pretty clear that there is a significant weight difference from Immature to mature abalones, but the male/female difference is not immediately clear. Let's use a t-test to see if there is a significant difference in weight between these two groups:
+
+```{r}
+# Conduct independent t-test: Are females significantly heavier than males?
+
+# First, test that homogeneity of variance is achieved (prerequisite for t-test)
+abalone_test <- abalone_clean %>% filter(Sex %in% c("M", "F"))
+res <- var.test(WholeWeight ~ Sex, data = abalone_test)
+res
+```
+
+The ratio of variances is around 0.84, showing that variance is similar between male and female group and that we can move forward with our t-test.
+
+```{r}
+t.test(WholeWeight ~ Sex, var.equal = TRUE, data = abalone_test)
+```
+
+The t-value is 3.2305. A higher absolute t-value indicates a larger difference between the groups. This represents the number of standard deviations that the sample mean (mean in group F minus mean in group M) is from the null hypothesis mean (0, assuming no difference between the groups). In summary, the low p-value (0.00125) and the 95% confidence interval (not including 0) suggest that there is evidence to reject the null hypothesis and that there is a significant difference between sample means in abalone female weight versus male weight.
+
+We know there are differences in weight by Sex, but what about Age? Let's now focus on our target variable, Age, and visualize weight by age group:
+
+```{r}
+# Visualize average abalone weight by age group
+plot3 <- abalone_clean %>% filter(Sex %in% c("M", "F")) %>% group_by(Age) %>% 
+  summarise(avg_weight = mean(WholeWeight)) %>% 
+  ggplot(aes(x = Age, y = avg_weight)) + 
+  geom_point(size = 3, shape = 23, color = "#FF7F00", fill = "#FDBF6F") +
+  labs(title = "Average Weight per Abalone Age Group",
+       x = "Age Group",
+       y = "Average Weight by Age Group (grams)") +
+  gen_formatting
+
+plot3
+```
+
+This plot shows a general increasing trend and direct relationship between age group and average weight. However, there are some funky-looking values in the top right-hand corner of the plot (for age groups of around 18 yrs and above). Average is really only a good central tendency measure when the data in each age group is normally distributed and has a healthy sample size. It is possible that the distribution of weight data in the higher age groups is not normally distributed or has low sample size.
+
+Let's investigate distribution of age in the data:
+
+```{r}
+# Visualize age distribution within the abalone dataset:
+plot4 <- abalone %>% select(-Sex) %>% group_by(Age) %>%  ggplot(aes(Age)) + 
+  geom_bar(fill = "#66C2A5", color = "#B3B3B3") +
+  labs(title = "Distribution of Abalone Age",
+       x = "Age",
+       y = "Count") +
+  gen_formatting
+
+plot4
+```
+
+Interesting - it looks like our initial hunch about low sample size was correct and our dataset suffers from survivorship bias, in that there are fewer abalones that live to older age and therefore, there is less data to reliably predict abalones of older age. We will keep this unbalanced dataset issue in mind as we run machine learning models.
+
+Is there at least a somewhat even distribution of males and females in each age group, even if sample size is lower in older age groups?
+
+```{r}
+# Visualize distribution of abalone age by Sex:
+facet_colors_fill <- c("#A6CEE3", "#FB9A99", "#B2DF8A")
+facet_colors_color <- c("#1F78B4", "#E31A1C", "#33A02C")
+
+plot5 <- ggplot(abalone_clean, aes(x = Age, fill = as.factor(Sex), color = as.factor(Sex))) +
+  geom_histogram(binwidth = 2, alpha = 0.7) +  # Custom bar color
+  scale_fill_manual(values = setNames(facet_colors_fill, unique(abalone_clean$Sex)),
+                    name = "Sex",
+                    labels = c(F = "Female", I = "Immature", M = "Male")) +
+  scale_color_manual(values = setNames(facet_colors_color, unique(abalone_clean$Sex)),
+                     name = "Sex",
+                     labels = c(F = "Female", I = "Immature", M = "Male")) + 
+  facet_grid(Sex ~ ., labeller = as_labeller(c(F = "Female", I = "Immature", M = "Male"))) +
+  labs(title = "Distribution of Abalone Age by Sex",
+       x = "Age",
+       y = "Count") +
+  gen_formatting
+
+plot5
+```
+
+It looks like there is a normal distribution of grown males and females in each age group. Immature abalones show more of a right-skewed distribution.
+
+### Multivariate EDA
+
+Now that we have made observations about some key variables in our dataset, such as, age, sex, and weight, let's explore their associations with one another through a correlation plot:
+
+```{r}
+cor_table = abalone_clean %>% select(-Sex) %>% cor()
+corplot1 <- corrplot(cor_table, method = 'number', diag = FALSE) # colorful number
+corplot1
+```
+
+This plot indicates that we will need to proceed cautiously regarding multicollinearity when running machine learning algorithms. However, features that are highly correlated with the age (e.g., ShellWeight, Diameter) might be good candidates for inclusion in our machine learning models over others. Viscera weight and whole weight, among other measurements like this, are highly correlated, so this may provide a good case for using interaction terms or dimensionality reduction prior to running machine learning models. Finally, it is important to note that higher correlations do not necessarily imply causation or better predictive power in a machine learning context.
+
+## Machine Learning Models
+
+### Linear Regression
+
+Now that we have a good sense of our cleaned up data, let's start running some models!
+
+First, let's set the seed (so that anyone that reviews this will get the same indices and therefore model results that I do when running my code below) and split our data into training and test sets:
+
+```{r}
+set.seed(100) # Set the seed
+
+train_index <- createDataPartition(abalone_clean$Age, p = 0.8, list = FALSE)
+train_set <- abalone_clean[train_index, ]
+test_set <- abalone_clean[-train_index, ]
+```
+
+Let's run a simple linear regression model (to use primarily for comparison) with just ShellWeight (our variable most highly correlated with Age according to the correlation plot above) as a predictor:
+
+```{r}
+# Prepare the model
+lm_fit <- train_set %>% lm(Age ~ ShellWeight, data = .)
+
+# Make predictions using the fitted model
+pred <- predict(lm_fit, test_set)
+
+# Generate root mean squared error (RMSE) value 
+rmse_1 <- RMSE(test_set$Age, pred)
+
+# Save RMSE value in a table to track progress later
+rmse_summary <- tibble(Model = "Linear Reg - Shell Weight", RMSE = round(rmse_1, 3))
+rmse_summary
+```
+
+Let's visualize our actual vs predicted values:
+
+```{r}
+# Visualize predicted vs actual values
+plot_data <- data.frame(Predicted_value = pred,   
+                        Observed_value = test_set$Age) 
+
+ggplot(plot_data, aes(x = Observed_value, y = Predicted_value)) + 
+  geom_point() + 
+  geom_abline(intercept = 0, slope = 1, color = "#66C2A5", linetype = "dashed") +
+  labs(title = "Predicted vs Actual",
+       x = "Actual Values",
+       y = "Predicted Values") +
+  gen_formatting
+```
+
+As we can see, the model has a harder job predicting the younger (likely immature abalones) and older age groups correctly. We will experiment with using weights to fix this issue of unbalanced data in the random forest section. For now, let's try linear regression using all of the variables (aside from Age) as predictors to see if we can improve our result.
+
+```{r}
+lm_fit <- train_set %>% lm(Age ~ ., data = .)
+pred <- predict(lm_fit, test_set)
+rmse_2 <- RMSE(test_set$Age, pred)
+
+rmse_summary <- bind_rows(rmse_summary,
+                          tibble(Model = "Linear Reg - All Predictor Variables",
+                                 RMSE = round(rmse_2, 3)))
+rmse_summary
+```
+
+This improves our RMSE quite a bit! Now let's see if we can refine the linear regression model further by adding interaction terms. Since the dataset has minimal features and we are relatively familiar with how each variable is related, we can incorporate interaction terms into our model by multiplying two or more predictor variables that may be correlated to capture their combined effects in the model. Interaction terms allow the model to account for situations where the relationship between one predictor variable and the response is related to the value of another predictor variable (e.g., ShellWeight and WholeWeight).
+
+```{r}
+rain_set_intxns <- train_set %>% mutate(
+  physical_measurements = Height * Diameter * WholeWeight, 
+  internal_features = ShuckedWeight * VisceraWeight,
+  shell_features = ShellWeight * Diameter)
+
+test_set_intxns <- test_set %>% mutate(
+  physical_measurements = Height * Diameter * WholeWeight,
+  internal_features = ShuckedWeight * VisceraWeight,
+  shell_features = ShellWeight * Diameter)
+
+lm_fit <- train_set_int_terms %>% lm(Age ~ ., data = .)
+pred <- predict(lm_fit, test_set_intxns)
+rmse_3 <- RMSE(test_set_intxns$Age, pred)
+
+rmse_summary <- bind_rows(rmse_summary, tibble(
+  Model = "Linear Reg - All Predictor Variables + Interaction Terms",
+  RMSE = round(rmse_3, 3)))
+rmse_summary
+```
+
+Nice! We got an even better RMSE, but this does not solve our multicollinearity issue (actually, adding in interaction terms may have exacerbated it since most of the variables are pretty correlated and combining them doesn't help with that). Let's see if we can address this and any overfitting that may be occuring with regularization techniques.
+
+### Regularization Application
 
 ```{r pressure, echo=FALSE}
 plot(pressure)

@@ -18,34 +18,35 @@ for (lib in libraries_to_load) {
 data(abalone)
 dim(abalone)
 str(abalone)
-head(abalone)
 
-## Clean Data
-# remove old Rings column so as not to introduce issues associated with perfect multicollinearity when running models
-# Add age column: The age of an abalone is represented by its number of rings plus 1.5 as number of years lived.
+# Clean Data
+
+# Create a new column for "Age" (which is just Rings + 1.5), 
+# remove the Rings column,
+# and rename "Type" to "Sex"
 
 abalone <- abalone %>% mutate(Age = Rings + 1.5) %>% rename(Sex = Type) %>% select(-Rings)
 
-# Remove obvious errors/outliers by checking 
+# Check that there are no "0" measurements present by observing minimum of each variable
 
 apply(abalone, 2, min)
 # looks like height has some values of 0 that should be removed
 
-# Check for erroneous values: where shucked weight is greater than whole weight and viscera weight is greater than whole weight
+# Check for erroneous values: 
+# where shucked weight is greater than whole weight
 sum(abalone$ShuckedWeight >= abalone$WholeWeight)
 # there are 4 values here that should be removed
 
-# Check that there aren't any viscera weights greater than or equal to whole weight that might need removal
+# where viscera weight is greater than whole weight
 sum(abalone$VisceraWeight >= abalone$WholeWeight)
 # There are no values here that need to be removed
 
 # Generate a clean dataset based on results
 
 abalone_clean <- abalone %>% filter(ShuckedWeight <= WholeWeight) %>% filter(Height != 0)
+dim(abalone_clean)
 
 ## Univariate EDA
-# Now that we have a clean dataset, let's get a feel for the data and how it's distributed throughout
-# and within subsets of the data
 
 # Prior to plotting and graphing,
 # let's look into using a color-blind friendly color palette. Looks like palettes, "Paired", "Set2", and "Dark2"
@@ -92,13 +93,10 @@ res <- var.test(WholeWeight ~ Sex, data = abalone_test)
 res
 # Ratio of variances is around 0.84, showing that variance is similar between male and female groups
 # no significant difference between these two variances, so we can move forward with our t-test
-# Remove "I", or immature abalones, from the dataset and move forward with t-test
+# Move forward with t-test
 
 t.test(WholeWeight ~ Sex, var.equal = TRUE, data = abalone_test)
-# significant differences in weight by sex
-# The t-value is 3.2305. This represents the number of standard deviations that the sample mean (mean in group F minus mean in group M) is from the null hypothesis mean (0, assuming no difference between the groups). 
-# A higher absolute t-value indicates a larger difference between the groups.
-# In summary, the low p-value (0.00125) and the 95% confidence interval (not including 0) suggest that there is evidence to reject the null hypothesis.
+# there are significant differences in weight by sex
 
 # Visualize average abalone weight by age group
 plot3 <- abalone_clean %>% filter(Sex %in% c("M", "F")) %>% group_by(Age) %>% 
@@ -116,6 +114,7 @@ plot3
 # However, there are some funky-looking values in the top right-hand corner of the plot (for age groups of around 18 yrs and above)
 # Average is really only a good central tendency measure when the data in each age group is normally distributed or has low sample size.
 # It is possible that the distribution of weight data in the higher age groups is not normally distributed or has low sample size.
+
 # Let's investigate the number of observations in each age group:
 
 # Visualize age distribution within the abalone dataset
@@ -126,13 +125,6 @@ plot4 <- abalone %>% select(-Sex) %>% group_by(Age) %>%  ggplot(aes(Age)) +
        y = "Count") +
   gen_formatting
 plot4
-
-# Interesting, looks like our initial hunch about low sample size was correct and our dataset
-# suffers from survivorship bias, in that there are fewer abalones that live to older age
-# and therefore, less data to use to reliably predict abalones of older age.
-# We will keep this unbalanced dataset issue in mind as we run machine learning models.
-# Is there at least a somewhat even distribution of males and females in each age group, even if sample size is lower
-# in older age groups?
 
 # Visualize distribution of abalone age by Sex
 facet_colors_fill <- c("#A6CEE3", "#FB9A99", "#B2DF8A")
@@ -159,17 +151,19 @@ plot5
 # to males and females
 
 ## Multivariate EDA
-# Now that we've looked into some of the variables and their distributions individually, let's look at how they may 
-# be correlated with one another. Remember that correlation does not imply causation.
 
+# Run a correlation plot to look at variable associations
 cor_table = abalone_clean %>% select(-Sex) %>% cor()
 corplot1 <- corrplot(cor_table, method = 'number', diag = FALSE) # colorful number
 corplot1
 # Indicates that we will need to be careful re: multicollinearity when running ML algos
-# Features that are highly correlated with the age (e.g., ShellWeight, Diameter) might be good candidates for inclusion in your machine learning model.
-# Viscera Weight and Whole Weight are highly correlated, would consider using dimensionality reduction here if it was a larger dataset
-# Shows us that shell characteristics (ShellWeight, Diameter, LongestShell) may be more predictive of age than full body or fleshy features
+# Correlation does not imply causation.
 
+# Machine Learning Applications
+
+# Split data into test and training sets
+
+set.seed(100) # Set the seed so that the indices are consistent if running code again
 train_index <- createDataPartition(abalone_clean$Age, p = 0.8, list = FALSE)
 train_set <- abalone_clean[train_index, ]
 test_set <- abalone_clean[-train_index, ]
@@ -181,7 +175,7 @@ pred <- predict(lm_fit, test_set)
 head(pred)
 rmse_1 <- RMSE(test_set$Age, pred)
 
-rmse_summary <- tibble(Model = "Linear Reg - Shell Weight", RMSE = rmse_1)
+rmse_summary <- tibble(Model = "Linear Reg - Shell Weight", RMSE = round(rmse_1, 3))
 rmse_summary
 
 # Visualize predicted vs actual values
@@ -196,37 +190,18 @@ ggplot(plot_data, aes(x = Observed_value, y = Predicted_value)) +
        y = "Predicted Values") +
   gen_formatting
 
-# This is not looking very good. Let's see what happens when we add in Height.
-# Chose height because it still has a relatively high correlation with age (0.56)
-# but is less closely correlated than Diameter with Age (0.82 for Height vs 0.91 for Diameter)
-# Multicollinearity still high, but not as high as it would be with Diameter
-
-lm_fit <- train_set %>% lm(Age ~ ShellWeight + Height, data = .)
-pred <- predict(lm_fit, test_set)
-rmse_2 <- RMSE(test_set$Age, pred)
-
-rmse_summary <- bind_rows(rmse_summary,
-                          tibble(Model = "Linear Reg - Shell Weight + Height",
-                                 RMSE = rmse_2))
-rmse_summary
-
-# This is slightly better, but does not produce a notable change in RMSE.
-
 # Let's try using all of the other predictors in the linear regression model:
 
 lm_fit <- train_set %>% lm(Age ~ ., data = .)
 pred <- predict(lm_fit, test_set)
-rmse_3 <- RMSE(test_set$Age, pred)
+rmse_2 <- RMSE(test_set$Age, pred)
 
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Linear Reg - All Predictor Variables",
-                                 RMSE = rmse_3))
+                                 RMSE = round(rmse_2, 3)))
 rmse_summary
 
-# Better, but let's see if we can refine the LR model further by addressing multicollinearity
-# We don't need to do a PCA method for dimensionality reduction because the dataset has minimal features and we
-# are relatively familiar with how each variable is related.
-# Creating interaction terms involves multiplying two or more predictor variables to capture combined effects in a linear regression model.
+# Let's try to improve the LR model by adding interaction terms
 
 train_set_intxns <- train_set %>% mutate(physical_measurements = Height * Diameter * WholeWeight, 
                                                     internal_features = ShuckedWeight * VisceraWeight,
@@ -238,14 +213,16 @@ test_set_intxns <- test_set %>% mutate(physical_measurements = Height * Diameter
 
 lm_fit <- train_set_int_terms %>% lm(Age ~ ., data = .)
 pred <- predict(lm_fit, test_set_intxns)
-rmse_4 <- RMSE(test_set_intxns$Age, pred)
+rmse_3 <- RMSE(test_set_intxns$Age, pred)
 
 rmse_summary <- bind_rows(rmse_summary,
                           tibble(Model = "Linear Reg - All Predictor Variables + Interaction Terms",
-                                 RMSE = rmse_4))
+                                 RMSE = round(rmse_3, 3)))
 rmse_summary
 
-# That's much better! Can we use this dataset with interaction terms and improve even further by implementing regularization?
+# Better! 
+# Can we use this dataset with interaction terms
+# and improve further by implementing regularization?
 
 # First, transform Sex to a numeric value so that all predictor variables are numeric:
 train_set_continuous <- train_set_intxns %>% mutate(Sex_Integer = as.integer(train_set$Sex)) %>% select(-c(Sex))
