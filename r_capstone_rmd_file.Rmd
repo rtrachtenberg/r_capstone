@@ -58,7 +58,8 @@ str(abalone)
 
 Upon initial observation, it looks like the dataset has 4,177 observations and 9 columns, with variable information that generally matches what is in the documentation.
 
-## Data Cleaning
+## Methods and Analysis
+### Data Cleaning
 
 Now that we have our libraries and dataset loaded without error, we can inspect the structure and contents of the data and identify any parts that may require cleaning, formatting, and/or handling of outliers or missing data.
 
@@ -96,9 +97,9 @@ dim(abalone_clean)
 
 The clean dataset has 4,171 observations and 9 columns, meaning we successfully removed the 6 erroneous observations.
 
-## Exploratory Data Analysis (EDA)
+### Exploratory Data Analysis (EDA)
 
-### Plot Formatting
+#### Plot Formatting
 
 Now that we have a clean dataset, let's get a feel for the data and how it's distributed throughout and within features. Since we will be doing a decent amount of plotting and graphing, let's first look into a color-blind friendly palette to use throughout our analysis using the RColorBrewer package.
 
@@ -123,7 +124,7 @@ gen_formatting <- theme(plot.title = element_text(face = "bold"),
 )
 ```
 
-### Univariate EDA
+#### Univariate EDA
 
 First, let's visualize the distribution of abalone weights in the full dataset:
 
@@ -156,7 +157,9 @@ plot2 <- ggplot(abalone_clean, aes(x = Sex, y = WholeWeight, fill = Sex)) +
 plot2 
 ```
 
-Looking at this, it's pretty clear that there is a significant weight difference from Immature to mature abalones, but the male/female difference is not immediately clear. Let's use a t-test to see if there is a significant difference in weight between these two groups:
+Looking at this, it's pretty clear that there is a significant weight difference from immature to mature abalones, but the male/female difference is not immediately clear. 
+
+Let's use a t-test to see if there is a significant difference in weight between these two groups. Note that there are several prerequisites that the data must meet prior to running a t-test, including homogeneity of variance and normal distribution. We can see from the previous symmetry in the male and female boxplots that normality is achieved, but we will need to test further for homogeneity of variance:
 
 ```{r}
 # Conduct independent t-test: Are females significantly heavier than males?
@@ -235,7 +238,7 @@ plot5
 
 It looks like there is a normal distribution of grown males and females in each age group. Immature abalones show more of a right-skewed distribution.
 
-### Multivariate EDA
+#### Multivariate EDA
 
 Now that we have made observations about some key variables in our dataset, such as, age, sex, and weight, let's explore their associations with one another through a correlation plot:
 
@@ -246,9 +249,9 @@ corplot1 <- corrplot(cor_table, method = 'number', diag = FALSE) # colorful numb
 
 This plot indicates that we will need to proceed cautiously regarding multicollinearity when running machine learning algorithms. However, features that are highly correlated with the age (e.g., ShellWeight, Diameter) might be good candidates for inclusion in our machine learning models over others. Viscera weight and whole weight, among other measurements like this, are highly correlated, so this may provide a good case for using interaction terms or dimensionality reduction prior to running machine learning models. Finally, it is important to note that higher correlations do not necessarily imply causation or better predictive power in a machine learning context.
 
-## Machine Learning Models
+### Machine Learning Models
 
-### Linear Regression
+#### Linear Regression
 
 Now that we have a good sense of our cleaned up data, let's start running some models!
 
@@ -338,10 +341,10 @@ rmse_summary
 
 Nice! We got an even better RMSE, but this does not solve our multicollinearity issue (actually, adding in interaction terms may have exacerbated it since most of the variables are pretty correlated and combining them doesn't help with that). Let's see if we can address this and any overfitting that may be occuring with regularization techniques.
 
-### Regularization Application
+#### Regularization Application
 
 
-#### Data Preparation
+##### Data Preparation
 
 First, let's transform Sex to a numeric value so that all predictor variables are numeric:
 
@@ -396,7 +399,7 @@ scaled_feature_summary
 The scaling process has centered the data (resulting in a mean close to zero) and standardized its spread (resulting in a standard deviation of 1) for each feature. Scaling ensures that the regularization strength (the hyperparameter controlling the extent of regularization) applies uniformly across features, so now that this is done, we can proceed with regularization.
 
 
-#### Regularization - Ridge (L2) Regression
+##### Regularization - Ridge (L2) Regression
 
 Ridge (L2) regression works best when most variables in the model are useful, as it shrinks parameters but does not remove them. Note that the parameter that makes this a Ridge (L2) Regression is the alpha parameter set at 0. Let's see how our ridge regression model performs:
 
@@ -423,7 +426,7 @@ rmse_summary
 It looks like this didn't have quite the effect on RMSE that we were hoping for, but maybe that's because Lasso (L1) Regression is a better fit.
 
 
-#### Regularization - Lasso (L1) Regression
+##### Regularization - Lasso (L1) Regression
 
 Lasso (L1) Regression works best when there are some variables in the model that are useless or redundant (sounds like our multicollinearity issue!), as it shrinks these parameters completely to zero and therefore generates a simpler model. Note that the parameter that indicates Lasso (L1) Regression is the alpha parameter set at 1. Let's see how our lasso regression model performs:
 
@@ -449,7 +452,7 @@ The regularized model here seems to be an improvement, although it still doesn't
 Finally, let's try elastic net regression to see if this improves our RMSE.
 
 
-#### Regularization - Elastic Net Regression
+##### Regularization - Elastic Net Regression
 
 Elastic net regression combines the the two regularization penalties (alpha and lambda) and is also good at dealing with situations when there are correlations between parameters. Note that the parameter that indicates Lasso (L1) Regression is the alpha parameter set between 0 and 1. We will use an alpha of 0.5 to get an idea of whether this method will be useful.
 
@@ -472,7 +475,7 @@ rmse_summary
 It seems like the optimal combination of alpha and lambda may have yet to be found.
 
 
-#### Regularization - Optimize Penalty Combination
+##### Regularization - Optimize Penalty Combination
 
 In order to understand which combination of penalties is truly best, we need to try many different values for alpha by optimizing the elastic net regression. We can do so and then run a model using the optimal alpha value using the following code:
 
@@ -531,7 +534,7 @@ Even though the RMSE is similar to the RMSE we got when running the initial elas
 
 Overall, the elastic net regression seemed to improve our RMSE notably, although still not as much as the linear regression with interaction terms. Let's see if an ensemble method, which tends to be generally more advanced and robust to overfitting, can help improve our RMSE.
 
-### Random Forest Model
+#### Random Forest Model
 
 [According to IBM](https://www.ibm.com/topics/random-forest), a random forest model is a machine learning algorithm that generates a combination, or "forest," of decision trees, which act as a means to split the data to arrive at a final predicted result. While decision trees consider all the possible feature splits, random forests only select a subset of those features.
 
@@ -652,7 +655,7 @@ rmse_summary
 
 It looks like using tuned parameters provided a slight improvement to our model. Let's try another ensemble method for comparison purposes.
 
-### Gradient Boosting
+#### Gradient Boosting
 
 [According to Amazon Web Services documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/xgboost-HowItWorks.html), gradient boosting trees attempt to predict a target variable by combining estimates of a set of simpler models. Although gradient boosted models can be prone to overfitting, they have been known to perform better than random forests in some cases due to the fact that they combine results along the way and iterate upon results throughout the selection process, as opposed to combining results at the end of the process as a random forest algorithm would.
 
@@ -796,7 +799,7 @@ rmse_summary
 
 The tuned boosted model did improve RMSE slightly over the initial boosted model; however, a gradient boosted model in general may have been too granular for our limited dataset since the more generalized random forest models performed slightly better overall.
 
-## Summary
+## Results
 
 Within the scope of this project, our tuned random forest model is the winner!
 
@@ -811,7 +814,7 @@ rmse_summary_sorted
 
 We can likely assume that the random forest model was the best fit for our data due to plenty of factors; however, overall, the abalone dataset is a relatively simple one with only nine features (including the target variable), and may have been generalized better with a random forest model or linear regression (with all variables and adjusted inputs) over a more complex boosted model. In addition, most of the data in the abalone dataset seemed to have linear relationships, giving random forest and linear regression the edge over a gradient boosted model. Obviously, the simple linear regression model was too simple (likely underfit the data). Since we had issues with multicollinearity in the dataset and therefore, some of the variables were redundant and not contributing much to the predictive power, elastic net's ability to perform variable selection may have been advantageous over ridge regression's approach to simply shrinking all variable coefficients.
 
-## Reflections and Opportunities for Improvement
+## Conclusion: Reflections & Opportunities for Improvement
 
 I went about this problem assuming Age was a continuous variable. However, since the age range of abalones in the dataset is 2.5 - 30.5, incremented by 0.5 for each age group, this could have easily been a classification problem and machine learning models could have been tailored to a classified result. For example, using cluster methods such as kNN would have been a good application to assigning an age "category" to an abalone using the other eight features in the dataset as predictors. If I had used this approach, I would have been able to run confusion matrices, which may have also provided better metrics of how my model was performing than just using RMSE as an indicator.
 
